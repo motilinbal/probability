@@ -1,0 +1,268 @@
+\documentclass[11pt]{article}
+
+% ===== PACKAGES =====
+\usepackage[utf8]{inputenc}     % Input encoding
+\usepackage[T1]{fontenc}      % Font encoding
+\usepackage{amsmath}          % AMS math package
+\usepackage{amssymb}          % AMS symbols
+\usepackage{amsfonts}         % AMS fonts
+\usepackage[english]{babel}     % Language settings
+\usepackage{geometry}         % For adjusting page layout
+\usepackage{amsthm}           % For theorem environments
+\usepackage{mathtools}        % Math tools, extends amsmath
+
+% ===== PAGE LAYOUT =====
+% Adjust margins (e.g., 1 inch on all sides)
+\geometry{
+    a4paper,
+    left=1in,
+    right=1in,
+    top=1in,
+    bottom=1in
+}
+
+% ===== THEOREM ENVIRONMENTS =====
+\newtheorem{definition}{Definition}[section] % Definition environment, numbered within sections
+\newtheorem{theorem}{Theorem}[section]       % Theorem environment
+\newtheorem{lemma}{Lemma}[section]           % Lemma environment
+\newtheorem{example}{Example}[section]       % Example environment
+\newtheorem{remark}{Remark}[section]         % Remark environment
+\theoremstyle{definition} % Use definition style for proofs (less emphasis)
+\newtheorem*{proofpart}{Proof Part}           % Unnumbered proof part environment
+
+% ===== CUSTOM COMMANDS =====
+\newcommand{\R}{\mathbb{R}}     % Real numbers symbol
+\newcommand{\E}{\mathbb{E}}     % Expectation symbol
+\newcommand{\Prob}{\mathbb{P}}  % Probability symbol
+\newcommand{\F}{\mathcal{F}}    % Sigma-algebra symbol
+\newcommand{\Xset}{\mathfrak{X}} % Set of atoms symbol
+
+% ===== DOCUMENT METADATA =====
+\title{Understanding Expectation: Definition and the Cauchy Distribution Case Study}
+\author{Revised Content} % You can replace this or remove the author line
+\date{\today} % Use today's date
+
+% ===== BEGIN DOCUMENT =====
+\begin{document}
+
+\maketitle
+
+\section{Introduction to Expectation}
+\label{sec:expectation_intro}
+
+In probability theory, the expectation (or expected value) of a random variable represents its average value, weighted by probability. It's a fundamental concept used across statistics, finance, physics, and many other fields.
+
+Consider a probability space $(\Omega, \F, \Prob)$, where $\Omega$ is the sample space, $\F$ is the sigma-algebra of events, and $\Prob$ is the probability measure. For a random variable $X: \Omega \to \R$, the expectation is formally defined as an integral over the sample space:
+\[
+\E[X] = \int_{\Omega} X(\omega) \, d\Prob(\omega)
+\]
+This integral is a Lebesgue integral with respect to the probability measure $\Prob$. Since the sample space $\Omega$ can be abstract, direct computation using this definition is often impractical. The Lebesgue integral provides a rigorous foundation, especially for complex scenarios, but its detailed construction is beyond the scope of this discussion.
+
+Fortunately, we can compute expectation using the distribution of the random variable $X$ itself, without direct reference to the underlying sample space $\Omega$.
+
+\section{Calculating Expectation}
+\label{sec:expectation_calc}
+
+Let $X$ be a random variable with cumulative distribution function (CDF) $F_X(x) = \Prob(X \le x)$. The expectation can be calculated based on whether $X$ is discrete, continuous, or mixed.
+
+\begin{definition}[Expectation]
+\label{def:expectation}
+The expectation of a random variable $X$ is generally defined using the Riemann-Stieltjes integral:
+\begin{equation} \label{eq:general_expectation}
+\E[X] = \int_{-\infty}^{\infty} x \, dF_X(x)
+\end{equation}
+This general form encompasses different types of random variables:
+\begin{itemize}
+    \item \textbf{Discrete Case:} If $X$ is a discrete random variable taking values in a countable set $\Xset = \{x_1, x_2, \dots\}$ with probability mass function (PMF) $P_X(x) = \Prob(X=x)$, the expectation is:
+    \[
+    \E[X] = \sum_{x \in \Xset} x \cdot P_X(x)
+    \]
+    This sum must converge absolutely for the expectation to be finite (i.e., $\sum_{x \in \Xset} |x| P_X(x) < \infty$).
+
+    \item \textbf{Continuous Case:} If $X$ is a continuous random variable with probability density function (PDF) $f_X(x)$, the expectation is:
+    \[
+    \E[X] = \int_{-\infty}^{\infty} x \cdot f_X(x) \, dx
+    \]
+    This integral must converge absolutely for the expectation to be finite (i.e., $\int_{-\infty}^{\infty} |x| f_X(x) \, dx < \infty$).
+\end{itemize}
+The notation $\int x \, dF_X(x)$ elegantly combines the sum and the integral, representing the weighted average of the values $x$ with weights given by the infinitesimal probability increments $dF_X(x)$.
+\end{definition}
+
+\begin{remark}[Existence of Expectation]
+The expectation $\E[X]$ is said to exist if the integral (or sum) defining $\E[|X|]$ is finite. However, the concept of expectation is sometimes extended to cases where the value is infinite. To handle this rigorously, we consider the positive and negative parts of $X$.
+\end{remark}
+
+\subsection{Positive and Negative Parts}
+\label{subsec:positive_negative}
+
+Any random variable $X$ can be decomposed into its positive part $X^+$ and negative part $X^-$:
+\[
+X = X^+ - X^-
+\]
+where
+\begin{align*}
+X^+ &= \max(X, 0) = X \cdot I(X \ge 0) \\
+X^- &= \max(-X, 0) = -X \cdot I(X < 0)
+\end{align*}
+Here, $I(\cdot)$ is the indicator function. Note that both $X^+$ and $X^-$ are non-negative random variables ($X^+ \ge 0$ and $X^- \ge 0$). Also, the absolute value can be expressed as $|X| = X^+ + X^-$.
+
+The expectation $\E[X]$ is defined based on the expectations of these non-negative parts, $\E[X^+]$ and $\E[X^-]$:
+
+\begin{enumerate}
+    \item \textbf{Finite Expectation:} If both $\E[X^+] < \infty$ and $\E[X^-] < \infty$, then the expectation $\E[X]$ is well-defined and finite:
+    \[
+    \E[X] = \E[X^+] - \E[X^-]
+    \]
+    This is equivalent to the condition $\E[|X|] = \E[X^+] + \E[X^-] < \infty$.
+
+    \item \textbf{Infinite Expectation:} If exactly one of $\E[X^+]$ or $\E[X^-]$ is infinite, the expectation $\E[X]$ is well-defined but infinite.
+    \begin{itemize}
+        \item If $\E[X^+] = \infty$ and $\E[X^-] < \infty$, then $\E[X] = \infty$.
+        \item If $\E[X^+] < \infty$ and $\E[X^-] = \infty$, then $\E[X] = -\infty$.
+    \end{itemize}
+
+    \item \textbf{Undefined Expectation:} If both $\E[X^+] = \infty$ and $\E[X^-] = \infty$, then the expectation $\E[X]$ is undefined. It represents an indeterminate form $\infty - \infty$.
+\end{enumerate}
+
+\subsection{Expectation of a Function of a Random Variable}
+\label{subsec:lotus}
+
+A crucial property, often called the Law of the Unconscious Statistician (LOTUS), allows us to compute the expectation of a function $g(X)$ without finding the distribution of $Y=g(X)$.
+
+\begin{theorem}[LOTUS]
+Let $X$ be a random variable and $g: \R \to \R$ be a measurable function. The expectation of $Y = g(X)$ is given by:
+\[
+\E[g(X)] = \int_{-\infty}^{\infty} g(x) \, dF_X(x)
+\]
+Specifically:
+\begin{itemize}
+    \item If $X$ is discrete with PMF $P_X(x)$: $\E[g(X)] = \sum_{x \in \Xset} g(x) P_X(x)$
+    \item If $X$ is continuous with PDF $f_X(x)$: $\E[g(X)] = \int_{-\infty}^{\infty} g(x) f_X(x) \, dx$
+\end{itemize}
+The expectation $\E[g(X)]$ exists if $\E[|g(X)|] < \infty$.
+\end{theorem}
+
+\section{Example: The Standard Cauchy Distribution}
+\label{sec:cauchy}
+
+The Cauchy distribution provides a classic example where the expectation is undefined.
+
+\begin{definition}[Standard Cauchy Distribution]
+A continuous random variable $X$ follows the standard Cauchy distribution if its PDF is given by:
+\[
+f_X(x) = \frac{1}{\pi(1 + x^2)}, \quad \text{for } x \in \R
+\]
+\end{definition}
+The graph of this function is bell-shaped like the normal distribution, but with much heavier tails.
+
+\begin{example}[Expectation of a Standard Cauchy Variable]
+\label{ex:cauchy_expectation}
+Let $X$ follow the standard Cauchy distribution. We claim that $\E[X]$ is undefined.
+
+\begin{proof}
+We need to evaluate $\E[X^+]$ and $\E[X^-]$. Let's compute $\E[X^+]$:
+\[
+\E[X^+] = \int_{-\infty}^{\infty} x^+ f_X(x) \, dx = \int_{0}^{\infty} x \cdot \frac{1}{\pi(1 + x^2)} \, dx
+\]
+Consider the integral $I = \int_{0}^{\infty} \frac{x}{1 + x^2} \, dx$. We use the substitution $u = 1 + x^2$, which implies $du = 2x \, dx$, or $x \, dx = \frac{1}{2} du$. The limits of integration change: as $x \to 0^+$, $u \to 1^+$; as $x \to \infty$, $u \to \infty$.
+\[
+I = \int_{1}^{\infty} \frac{1}{u} \cdot \frac{1}{2} \, du = \frac{1}{2} \int_{1}^{\infty} \frac{1}{u} \, du
+\]
+This is a standard improper integral:
+\[
+\int_{1}^{\infty} \frac{1}{u} \, du = \lim_{b \to \infty} [\ln|u|]_{1}^{b} = \lim_{b \to \infty} (\ln(b) - \ln(1)) = \lim_{b \to \infty} \ln(b) = \infty
+\]
+Since $I = \infty$, we have:
+\[
+\E[X^+] = \frac{1}{\pi} I = \infty
+\]
+Now let's compute $\E[X^-]$:
+\[
+\E[X^-] = \int_{-\infty}^{\infty} x^- f_X(x) \, dx = \int_{-\infty}^{0} (-x) \cdot \frac{1}{\pi(1 + x^2)} \, dx
+\]
+We can use the substitution $y = -x$, so $dy = -dx$. When $x \to 0^-$, $y \to 0^+$; when $x \to -\infty$, $y \to \infty$. Also, $1+x^2 = 1+(-y)^2 = 1+y^2$.
+\[
+\E[X^-] = \int_{\infty}^{0} y \cdot \frac{1}{\pi(1 + y^2)} \, (-dy) = \int_{0}^{\infty} \frac{y}{\pi(1 + y^2)} \, dy = \E[X^+]
+\]
+Alternatively, we could note that the integrand for $\E[X^-]$ is related to the integrand for $\E[X^+]$ by symmetry. Since $f_X(x)$ is an even function ($f_X(-x) = f_X(x)$), the integral $\int_{-\infty}^{0} (-x) f_X(x) dx$ mirrors $\int_{0}^{\infty} x f_X(x) dx$.
+
+Thus, $\E[X^-] = \infty$.
+
+Since both $\E[X^+] = \infty$ and $\E[X^-] = \infty$, we are in Case 3 (Undefined Expectation). Therefore, the expectation $\E[X]$ for the standard Cauchy distribution does not exist (it is undefined).
+\end{proof}
+\end{example}
+
+\begin{remark}[Expectation of $|X|$]
+Although $\E[X]$ is undefined, the expectation of the absolute value, $\E[|X|]$, is well-defined. Since $|X| = X^+ + X^- \ge 0$, it is a non-negative random variable. Its expectation is:
+\[
+\E[|X|] = \E[X^+ + X^-] = \E[X^+] + \E[X^-] = \infty + \infty = \infty
+\]
+So, $\E[|X|]$ is well-defined, but it is infinite. This confirms that the integral $\int |x| f_X(x) dx$ diverges, which is the condition for the expectation $\E[X]$ not being finite.
+\end{remark}
+
+\begin{example}[Expectation of a Transformed Cauchy Variable]
+\label{ex:transformed_cauchy}
+Consider the random variable $Y = \text{sign}(X) \sqrt{|X|}$, where $X$ has a standard Cauchy distribution. We claim that $\E[Y]$ is well-defined and finite (specifically, $\E[Y]=0$).
+
+\begin{proof}
+We analyze the positive and negative parts, $Y^+$ and $Y^-$. Note that $Y = \sqrt{X}$ for $X \ge 0$ and $Y = -\sqrt{-X}$ for $X < 0$.
+\[
+\E[Y^+] = \int_{0}^{\infty} y \cdot f_Y(y) \, dy \quad \text{(using LOTUS)} \implies \E[Y^+] = \int_{0}^{\infty} \sqrt{x} \cdot f_X(x) \, dx
+\]
+So,
+\[
+\E[Y^+] = \int_{0}^{\infty} \sqrt{x} \cdot \frac{1}{\pi(1 + x^2)} \, dx = \frac{1}{\pi} \int_{0}^{\infty} \frac{\sqrt{x}}{1 + x^2} \, dx
+\]
+We need to check if this improper integral converges. We examine the behavior of the integrand near the endpoints $0$ and $\infty$.
+
+\begin{proofpart}[Convergence near $x=0$]
+As $x \to 0^+$, the integrand behaves like $\frac{\sqrt{x}}{1+0} = \sqrt{x} = x^{1/2}$.
+The integral $\int_{0}^{a} x^{1/2} \, dx$ converges for any $a > 0$, since
+\[ \int_{0}^{a} x^{1/2} \, dx = \left[ \frac{2}{3} x^{3/2} \right]_{0}^{a} = \frac{2}{3} a^{3/2} < \infty \]
+By the Limit Comparison Test, since $\lim_{x \to 0^+} \frac{\sqrt{x}/(1+x^2)}{\sqrt{x}} = 1$, the integral $\int_{0}^{a} \frac{\sqrt{x}}{1 + x^2} \, dx$ converges.
+\end{proofpart}
+
+\begin{proofpart}[Convergence near $x=\infty$]
+As $x \to \infty$, the integrand behaves like $\frac{\sqrt{x}}{x^2} = x^{1/2 - 2} = x^{-3/2}$.
+The integral $\int_{b}^{\infty} x^{-3/2} \, dx$ converges for any $b > 0$, since
+\[ \int_{b}^{\infty} x^{-3/2} \, dx = \lim_{c \to \infty} \left[ -2 x^{-1/2} \right]_{b}^{c} = \lim_{c \to \infty} \left( \frac{-2}{\sqrt{c}} - \frac{-2}{\sqrt{b}} \right) = 0 + \frac{2}{\sqrt{b}} < \infty \]
+By the Limit Comparison Test, since $\lim_{x \to \infty} \frac{\sqrt{x}/(1+x^2)}{x^{-3/2}} = \lim_{x \to \infty} \frac{x^2}{1+x^2} = 1$, the integral $\int_{b}^{\infty} \frac{\sqrt{x}}{1 + x^2} \, dx$ converges.
+\end{proofpart}
+
+Since the integral converges both near $0$ and near $\infty$, the full integral $\int_{0}^{\infty} \frac{\sqrt{x}}{1 + x^2} \, dx$ converges to a finite value. Therefore, $\E[Y^+]$ is finite.
+
+By symmetry, we can show that $\E[Y^-]$ is also finite.
+\[
+\E[Y^-] = \int_{-\infty}^{0} (-y) f_Y(y) \, dy \quad \text{(using LOTUS)} \implies \E[Y^-] = \int_{-\infty}^{0} (-\text{sign}(x)\sqrt{|x|}) f_X(x) \, dx
+\]
+Since $x < 0$, $\text{sign}(x) = -1$ and $|x| = -x$.
+\[
+\E[Y^-] = \int_{-\infty}^{0} (-( -1 \cdot \sqrt{-x})) \frac{1}{\pi(1+x^2)} \, dx = \int_{-\infty}^{0} \sqrt{-x} \frac{1}{\pi(1+x^2)} \, dx
+\]
+Using the substitution $z = -x$ ($dz = -dx$), we get:
+\[
+\E[Y^-] = \int_{\infty}^{0} \sqrt{z} \frac{1}{\pi(1+(-z)^2)} (-dz) = \int_{0}^{\infty} \frac{\sqrt{z}}{\pi(1+z^2)} dz = \E[Y^+]
+\]
+So, $\E[Y^-]$ is also finite and equal to $\E[Y^+]$.
+
+Since both $\E[Y^+] < \infty$ and $\E[Y^-] < \infty$, we are in Case 1 (Finite Expectation). The expectation $\E[Y]$ is well-defined and finite:
+\[
+\E[Y] = \E[Y^+] - \E[Y^-]
+\]
+Furthermore, consider the function $h(x) = y(x) f_X(x) = \text{sign}(x)\sqrt{|x|} \cdot \frac{1}{\pi(1+x^2)}$.
+This function is odd, because $h(-x) = \text{sign}(-x)\sqrt{|-x|} \cdot \frac{1}{\pi(1+(-x)^2)} = -\text{sign}(x)\sqrt{|x|} \cdot \frac{1}{\pi(1+x^2)} = -h(x)$.
+The expectation is the integral of an odd function over a symmetric interval $(-\infty, \infty)$:
+\[
+\E[Y] = \int_{-\infty}^{\infty} h(x) \, dx = 0
+\]
+Thus, $\E[Y]$ is well-defined and equals 0.
+\end{proof}
+\end{example}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The concept of expectation is central to probability and statistics. While often interpreted as a long-run average, its formal definition requires careful consideration of convergence, particularly for distributions with heavy tails like the Cauchy distribution. Understanding the conditions under which expectation is defined, finite, infinite, or undefined is crucial for correct application and interpretation. The decomposition into positive and negative parts provides a robust framework for handling these cases.
+
+\end{document}
+% ===== END DOCUMENT =====
