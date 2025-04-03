@@ -1,0 +1,92 @@
+\documentclass[12pt, letterpaper]{article}
+
+% --- Essential Packages ---
+\usepackage{amsmath, amssymb, amsthm} % Math symbols and proof environment
+\usepackage{geometry}                % Page layout
+\usepackage[utf8]{inputenc}          % Input encoding
+\usepackage[T1]{fontenc}             % Font encoding
+\usepackage{lmodern}                 % Modern font replacement for Computer Modern
+\usepackage{microtype}               % Subtle typographic improvements
+\usepackage[svgnames]{xcolor}        % More color options
+\usepackage{hyperref}                % Clickable links/references
+
+% --- Page Layout ---
+\geometry{letterpaper, margin=1in} % Standard 1-inch margins
+
+% --- Hyperref Customization ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=MidnightBlue, % Color for internal links
+    citecolor=ForestGreen,  % Color for citations (if any)
+    urlcolor=DarkSlateBlue,   % Color for URLs
+    pdftitle={On the Existence of the Moment Generating Function},
+    pdfauthor={An Undergraduate Mathematics Teacher},
+    bookmarksopen=true,
+    bookmarksnumbered=true
+}
+
+% --- Custom Math Commands ---
+\newcommand{\E}{\mathbb{E}} % Shortcut for Expectation
+\newcommand{\R}{\mathbb{R}} % Shortcut for Real numbers
+
+% --- Title Information ---
+\title{
+    \vspace{-1cm} % Adjust vertical space
+    \fontsize{16pt}{20pt}\selectfont % Slightly larger title font
+    \textbf{Understanding the MGF's Foundation:} \\ % Title line break
+    \large Why the Existence Condition is Key
+}
+\author{A Note for Probability Students}
+\date{\today}
+
+% --- Document Start ---
+\begin{document}
+
+\maketitle
+
+\section*{The Role of the Existence Condition}
+
+We've defined the Moment Generating Function (MGF) for a random variable $X$ as $M_X(t) = \E[e^{tX}]$. A crucial caveat accompanies this definition: it's only valid if this expectation actually yields a finite number. The standard safeguard is the \emph{existence condition}: we require that there exists some positive number $\delta > 0$ for which $\E[e^{\delta|X|}]$ is finite.
+
+Why is this specific condition sufficient? Let's walk through the argument to see how it guarantees that $M_X(t)$ is well-defined (i.e., finite) for all values of $t$ within the important interval $(-\delta, \delta)$ centered around zero. This interval is precisely where the MGF needs to be well-behaved for us to extract moments via differentiation.
+
+\begin{proof}[Demonstration of Sufficiency]
+Our objective is to rigorously show that if we assume $\E[e^{\delta|X|}] < \infty$ for some $\delta > 0$, then it logically follows that $\E[e^{tX}]$ must be finite for any $t$ satisfying $|t| < \delta$.
+
+Let's select an arbitrary real number $t$ such that it falls within the specified interval, meaning $|t| < \delta$. Our task is to confirm that the value $\E[e^{tX}]$ is finite.
+
+The core idea is to relate the quantity $e^{tX}$ (whose expectation we're interested in) to $e^{\delta|X|}$ (whose expectation we know is finite). We can construct a chain of simple inequalities to bridge this gap:
+
+\begin{enumerate}
+    \item \textbf{Relating $tX$ to $|tX|$:} For any real number $a$, it's always true that $a \le |a|$. Applying this fundamental property to the exponent $tX$, we have:
+    \[ tX \le |tX| \]
+
+    \item \textbf{Using Properties of Absolute Value:} The absolute value of a product is the product of the absolute values: $|tX| = |t| |X|$. Substituting this gives:
+    \[ tX \le |t| |X| \]
+
+    \item \textbf{Incorporating the Condition $|t| < \delta$:} Here's the crucial step where our assumption about $t$ enters. Since $|X|$ is non-negative, and we know $0 \le |t| < \delta$, multiplying $|X|$ by $|t|$ results in a value less than or equal to multiplying it by $\delta$:
+    \[ |t| |X| \le \delta |X| \]
+    (We use $\le$ rather than $<$ to correctly handle the case where $X=0$).
+
+    \item \textbf{Combining the Inequalities:} Linking these steps together provides the key relationship:
+    \[ tX \le |t| |X| \le \delta |X| \]
+    Therefore, we have established that $tX \le \delta|X|$.
+\end{enumerate}
+
+Now, we leverage the fact that the exponential function $f(u) = e^u$ is \emph{monotonically increasing}. This means that if $a \le b$, then $e^a \le e^b$. Applying this to our inequality $tX \le \delta|X|$, we obtain:
+\[ e^{tX} \le e^{\delta|X|} \]
+This inequality holds true for every possible outcome of the random variable $X$.
+
+The final step involves the expectation operator, $\E[\cdot]$. A fundamental property of expectation is that it preserves inequalities for non-negative random variables. Since both $e^{tX}$ and $e^{\delta|X|}$ are always positive, we can take the expectation of both sides of the inequality:
+\[ \E[e^{tX}] \le \E[e^{\delta|X|}] \]
+
+By our initial assumption (the existence condition), we know that $\E[e^{\delta|X|}]$ is a finite number. Let's denote this finite value by $K$. Substituting this into our inequality yields:
+\[ \E[e^{tX}] \le K < \infty \]
+
+Since the expectation $\E[e^{tX}]$ is bounded above by the finite number $K$, it must necessarily be finite itself.
+
+\textbf{Conclusion:} We have successfully demonstrated that the condition $\E[e^{\delta|X|}] < \infty$ for some $\delta > 0$ is indeed sufficient to guarantee that the MGF $M_X(t) = \E[e^{tX}]$ exists as a finite value for all $t$ in the open interval $(-\delta, \delta)$. This foundational result ensures the MGF is well-defined in the neighborhood of $t=0$, allowing us to confidently proceed with using its derivatives to generate moments.
+\end{proof}
+
+% --- Document End ---
+\end{document}

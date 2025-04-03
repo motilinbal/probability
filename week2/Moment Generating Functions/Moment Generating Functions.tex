@@ -1,17 +1,43 @@
 \documentclass[12pt]{article}
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{geometry}
-\usepackage[pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref} % Added pdftex option for compatibility
+\usepackage{xcolor} % Load xcolor for 'gray' and other colors
+\usepackage[pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref} % pdftex option often safe, load after xcolor if needed
 \usepackage[utf8]{inputenc} % Good practice for input encoding with pdflatex
-\usepackage[T1]{fontenc}    % Good practice for font encoding with pdflatex
-\usepackage{lmodern}        % Using Latin Modern fonts - a good alternative to Computer Modern
+\usepackage[T1]{fontenc}      % Good practice for font encoding with pdflatex
+\usepackage{lmodern}          % Using Latin Modern fonts - a good alternative to Computer Modern
+\usepackage{mdframed} % For framed remarks
 
 \geometry{a4paper, margin=1in}
 
+% Standard theorem environments (using amsthm)
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{definition}[theorem]{Definition}
+% Define remark using amsthm, linked to theorem counter
 \newtheorem{remark}[theorem]{Remark}
+
+% --- mdframed setup for Remarks ---
+% 1. Define a style for the frame
+\mdfdefinestyle{RemarkFrame}{%
+    linecolor=gray,
+    linewidth=1pt,
+    topline=false,
+    bottomline=false,
+    rightline=false,
+    leftmargin=10pt,
+    rightmargin=10pt,
+    innerleftmargin=8pt,
+    innerrightmargin=8pt,
+    innertopmargin=5pt,
+    innerbottommargin=5pt,
+    skipabove=\topsep, % Standard spacing above/below
+    skipbelow=\topsep
+}
+% 2. Apply this style to the 'remark' environment defined by \newtheorem
+\surroundwithmdframed[style=RemarkFrame]{remark}
+% --- End of mdframed setup ---
+
 
 \title{Lecture Notes: The Moment Generating Function}
 \author{Probability for Statisticians - Lecture 2 Supplement}
@@ -30,78 +56,117 @@ Within the fascinating world of probability, we often seek tools to concisely de
 Let's formally define this function.
 
 \begin{definition}[Moment Generating Function (MGF)]
-Let $X$ be a random variable. Suppose there exists some positive value $\delta > 0$ such that the expected value $\mathbb{E}[e^{\delta|X|}]$ is finite ($\mathbb{E}[e^{\delta|X|}] < \infty$). Then, the \textbf{Moment Generating Function (MGF)} of $X$, denoted by $M_X(t)$, is defined as:
+Let $X$ be a random variable with probability density function (PDF) $f(x)$ or probability mass function (PMF) $P(X=x_k)$. Suppose there exists some positive value $\delta > 0$ such that the expected value $\mathbb{E}[e^{\delta|X|}]$ is finite ($\mathbb{E}[e^{\delta|X|}] < \infty$). Then, the \textbf{Moment Generating Function (MGF)} of $X$, denoted by $M_X(t)$, is defined as:
 \[
 M_X(t) = \mathbb{E}[e^{tX}]
 \]
-for all real numbers $t$ such that $|t| < \delta$.
+for all real numbers $t$ such that $|t| < \delta$. Explicitly:
+\begin{itemize}
+    \item Continuous case: $M_X(t) = \int_{-\infty}^{\infty} e^{tx} f(x) dx$
+    \item Discrete case: $M_X(t) = \sum_{k} e^{tx_k} P(X=x_k)$
+\end{itemize}
 \end{definition}
 
-\begin{remark}[The Existence Condition]
-The condition $\mathbb{E}[e^{\delta|X|}] < \infty$ for some $\delta > 0$ is crucial[cite: 3]. It ensures that the expectation defining the MGF, $\mathbb{E}[e^{tX}]$, converges and yields a finite value within a certain interval $(-\delta, \delta)$ around $t=0$[cite: 3]. This guarantees that the MGF is well-defined in a neighborhood of the origin, which is essential for the properties we'll explore next.
+\begin{remark}[The Existence Condition] % Uses the standard remark env. styled by mdframed
+The condition $\mathbb{E}[e^{\delta|X|}] < \infty$ for some $\delta > 0$ is crucial. It ensures that the expectation defining the MGF, $\mathbb{E}[e^{tX}]$, converges (i.e., the integral or sum yields a finite value) within a certain open interval $(-\delta, \delta)$ around $t=0$. This guarantees that $M_X(t)$ is a well-defined, finite function in a neighborhood of the origin, which is essential for the properties we'll explore next. If $X$ is non-negative, the condition simplifies to $\mathbb{E}[e^{\delta X}] < \infty$.
 \end{remark}
 
 \subsection{Lemma 1.5: Generating Moments Through Differentiation}
 
-Now, let's uncover why the MGF is aptly named[cite: 2]. The following lemma reveals the connection between the MGF and the moments of the random variable $X$[cite: 4].
+Now, let's uncover why the MGF is aptly named. The following lemma reveals the connection between the MGF and the moments of the random variable $X$.
 
 \begin{lemma}[Moments from the MGF] \label{lemma:mgf_moments}
-Suppose the Moment Generating Function $M_X(t)$ of a random variable $X$ exists (i.e., is finite) in an open interval containing $t=0$[cite: 4]. Then, all moments of $X$, denoted by $\mathbb{E}[X^p]$ for $p = 1, 2, 3, \dots$, exist and are finite[cite: 4, 8]. Furthermore, these moments can be obtained by differentiating the MGF $M_X(t)$ with respect to $t$ and evaluating the result at $t=0$[cite: 4]:
+Suppose the Moment Generating Function $M_X(t)$ of a random variable $X$ exists (i.e., is finite) in an open interval containing $t=0$, say $(-\delta, \delta)$ for some $\delta > 0$. Then, all moments of $X$, denoted by $\mathbb{E}[X^p]$ for $p = 1, 2, 3, \dots$, exist and are finite. Furthermore, these moments can be obtained by differentiating the MGF $M_X(t)$ with respect to $t$ and evaluating the result at $t=0$:
 \[
 \mathbb{E}[X^p] = \left. \frac{d^p}{dt^p} M_X(t) \right|_{t=0}
 \]
-for all positive integers $p \in \mathbb{N}$[cite: 4].
+for all positive integers $p \in \mathbb{N}$.
 \end{lemma}
 
 \begin{proof}[Proof of Lemma \ref{lemma:mgf_moments}]
-We are given that $M_X(t) = \mathbb{E}[e^{tX}]$ is defined and finite on an open interval $(-\delta, \delta)$ for some $\delta > 0$[cite: 5]. Let $p$ be any positive integer[cite: 5].
+We are given that $M_X(t) = \mathbb{E}[e^{tX}]$ is defined and finite on an open interval $(-\delta, \delta)$ for some $\delta > 0$. Let $p$ be any positive integer.
 
 \textbf{Step 1: Show all moments $\mathbb{E}[|X|^p]$ are finite.}
 
-Consider the Taylor series expansion of the exponential function $e^u = \sum_{j=0}^{\infty} \frac{u^j}{j!}$[cite: 5]. For any $t$ such that $0 < t < \delta$, we can write:
+(This part remains the same as before) ... Consider the Taylor series expansion of the exponential function $e^u = \sum_{j=0}^{\infty} \frac{u^j}{j!}$. For any $t_0$ such that $0 < t_0 < \delta$, we can write:
 \[
-e^{t|X|} = \sum_{j=0}^{\infty} \frac{(t|X|)^j}{j!} = 1 + t|X| + \frac{(t|X|)^2}{2!} + \dots + \frac{(t|X|)^p}{p!} + \dots
+e^{t_0|X|} = \sum_{j=0}^{\infty} \frac{(t_0|X|)^j}{j!} = 1 + t_0|X| + \frac{(t_0|X|)^2}{2!} + \dots + \frac{(t_0|X|)^p}{p!} + \dots
 \]
-Since all terms in the series are non-negative, the sum is greater than or equal to any single term. Let's pick the term where $j=p$[cite: 5]:
+Since all terms in the series are non-negative, the sum is greater than or equal to any single term. Let's pick the term where $j=p$:
 \[
-e^{t|X|} \ge \frac{(t|X|)^p}{p!} = \frac{t^p |X|^p}{p!}
+e^{t_0|X|} \ge \frac{(t_0|X|)^p}{p!} = \frac{t_0^p |X|^p}{p!}
 \]
-Rearranging this inequality gives us[cite: 6]:
+Rearranging this inequality gives us:
 \[
-|X|^p \le \frac{p!}{t^p} e^{t|X|}
+|X|^p \le \frac{p!}{t_0^p} e^{t_0|X|}
 \]
-Now, let's take the expectation of both sides. Since $p!$ and $t^p$ are constants for a fixed $t$ and $p$, we can pull them out of the expectation[cite: 7]:
+Now, let's take the expectation of both sides. Since $p!$ and $t_0^p$ are constants for a fixed $t_0$ and $p$, we can pull them out of the expectation:
 \[
-\mathbb{E}[|X|^p] \le \mathbb{E}\left[ \frac{p!}{t^p} e^{t|X|} \right] = \frac{p!}{t^p} \mathbb{E}[e^{t|X|}]
+\mathbb{E}[|X|^p] \le \mathbb{E}\left[ \frac{p!}{t_0^p} e^{t_0|X|} \right] = \frac{p!}{t_0^p} \mathbb{E}[e^{t_0|X|}]
 \]
-Since we know $M_X(t)$ exists for $t \in (-\delta, \delta)$, this implies $\mathbb{E}[e^{tX}]$ is finite[cite: 7]. A related result ensures that $\mathbb{E}[e^{t|X|}]$ is also finite for $t \in (-\delta, \delta)$[cite: 7].
+The initial assumption is that $\mathbb{E}[e^{\delta|X|}] < \infty$. Since $0 < t_0 < \delta$, it follows that $\mathbb{E}[e^{t_0|X|}]$ is also finite. (A brief justification: $e^{t_0|X|} \le 1 + e^{\delta|X|}$ for all $X$, ensuring $\mathbb{E}[e^{t_0|X|}]$ is finite if $\mathbb{E}[e^{\delta|X|}]$ is).
 
-Therefore, for our chosen $t$ (where $0 < t < \delta$), the term $\mathbb{E}[e^{t|X|}]$ on the right-hand side is finite[cite: 7]. Since $p!/t^p$ is also a finite constant, the entire right-hand side is finite. This forces the left-hand side, $\mathbb{E}[|X|^p]$, to be finite as well[cite: 7].
-Since this holds for any positive integer $p$, we conclude that all moments of $X$ exist and are finite[cite: 8].
+Therefore, for our chosen $t_0$ (where $0 < t_0 < \delta$), the term $\mathbb{E}[e^{t_0|X|}]$ on the right-hand side is finite. Since $p!/t_0^p$ is also a finite constant, the entire right-hand side is finite. This forces the left-hand side, $\mathbb{E}[|X|^p]$, to be finite as well.
+Since this holds for any positive integer $p$, we conclude that all absolute moments, and hence all moments $\mathbb{E}[X^p]$, exist and are finite.
+
+\begin{remark}[Justification for Interchanging Differentiation and Expectation] \label{rem:interchange}
+A crucial step in Step 2 below involves calculating $\frac{d}{dt} M_X(t)$ by bringing the derivative inside the expectation:
+\[ \frac{d}{dt} \mathbb{E}[e^{tX}] \stackrel{?}{=} \mathbb{E}\left[ \frac{d}{dt} e^{tX} \right] = \mathbb{E}[X e^{tX}] \]
+This interchange of differentiation and expectation (which is an integral or a sum) requires careful justification. Let's delve into the discrete case first, as the argument often feels more accessible.
+
+\textbf{Discrete Case: Differentiating the Series Term-by-Term}
+
+Here, $M_X(t) = \sum_{k} e^{tx_k} P(X=x_k)$. We want to show that we can differentiate this series term by term:
+\[ \frac{d}{dt} \left( \sum_{k} e^{tx_k} P(X=x_k) \right) \stackrel{?}{=} \sum_{k} \frac{d}{dt} (e^{tx_k} P(X=x_k)) = \sum_{k} x_k e^{tx_k} P(X=x_k) \]
+Calculus tells us this is permissible if the series of derivatives converges \textit{uniformly} on the interval of interest. Let's consider any closed interval $[-\delta', \delta']$ inside our original interval $(-\delta, \delta)$, where $0 < \delta' < \delta$.
+
+We can use the \textbf{Weierstrass M-Test} to establish uniform convergence. This test requires us to find a sequence of non-negative numbers $M_k$ such that:
+\begin{enumerate}
+    \item The absolute value of each term in the derivative series is bounded by $M_k$:
+          \[ \left| \frac{d}{dt} (e^{tx_k} P(X=x_k)) \right| = |x_k e^{tx_k} P(X=x_k)| \le M_k \]
+          for all $t \in [-\delta', \delta']$.
+    \item The series $\sum_k M_k$ converges.
+\end{enumerate}
+Let's find a suitable $M_k$. For $t \in [-\delta', \delta']$, we have $|t| \le \delta'$. Thus:
+\[ |x_k e^{tx_k} P(X=x_k)| = |x_k| e^{tx_k} P(X=x_k) \le |x_k| e^{|t||x_k|} P(X=x_k) \le |x_k| e^{\delta'|x_k|} P(X=x_k) \]
+So, we can choose $M_k = |x_k| e^{\delta'|x_k|} P(X=x_k)$. Now, does $\sum_k M_k$ converge?
+\[ \sum_k M_k = \sum_k |x_k| e^{\delta'|x_k|} P(X=x_k) = \mathbb{E}[|X| e^{\delta'|X|}] \]
+Is this expectation finite? Yes! This is the payoff from our initial assumption that $\mathbb{E}[e^{\delta|X|}]$ is finite for some $\delta > 0$. As we reasoned in Step 1, this finiteness implies $\mathbb{E}[|X|^p] < \infty$ for all $p$. It also guarantees that $\mathbb{E}[|X|^k e^{\delta'|X|}] < \infty$ for any integer $k \ge 0$ and any $0 < \delta' < \delta$. (The argument involves showing that $e^{\delta|X|}$ grows faster than any polynomial $|X|^k$, ensuring the combined expectation remains finite within $(-\delta, \delta)$). For $k=1$, we have $\mathbb{E}[|X| e^{\delta'|X|}] < \infty$.
+
+Since we found a convergent series $\sum_k M_k$ that bounds the terms of the derivative series for all $t \in [-\delta', \delta']$, the Weierstrass M-Test confirms that the series of derivatives $\sum_k x_k e^{tx_k} P(X=x_k)$ converges uniformly on $[-\delta', \delta']$. This justifies differentiating the original MGF series term-by-term within $(-\delta, \delta)$.
+
+\textbf{Continuous Case: Leibniz Integral Rule}
+
+An analogous argument holds for the continuous case, $M_X(t) = \int_{-\infty}^{\infty} e^{tx} f(x) dx$. Here, the justification relies on the \textbf{Leibniz Integral Rule}. The key step is again showing that the derivative term inside the integral, $x e^{tx} f(x)$, is dominated in absolute value by an integrable function for $t \in [-\delta', \delta']$. The dominating function is $H(x) = |x| e^{\delta'|x|} f(x)$, and its integrability, $\int H(x) dx = \mathbb{E}[|X| e^{\delta'|X|}] < \infty$, is guaranteed by the same fundamental condition $\mathbb{E}[e^{\delta|X|}] < \infty$.
+
+\textbf{Higher Derivatives}
+
+The same logic extends to higher derivatives. For the $p$-th derivative, we need to justify swapping $\frac{d^p}{dt^p}$ with the expectation. This requires showing that $\mathbb{E}[|X|^p e^{\delta'|X|}] < \infty$, which, as mentioned, also follows from the initial MGF existence condition. Therefore, the interchange is valid for all orders $p$.
+\end{remark}
 
 \textbf{Step 2: Relate derivatives of $M_X(t)$ to moments.}
 
-Now, let's differentiate $M_X(t) = \mathbb{E}[e^{tX}]$ with respect to $t$. A key step here involves interchanging the order of differentiation and expectation[cite: 9, 10]. This is permissible precisely because we've established that the moments exist and are finite, which ensures the necessary convergence conditions are met[cite: 10].
+Now, let's differentiate $M_X(t) = \mathbb{E}[e^{tX}]$ with respect to $t$. Based on the rigorous justification provided in Remark \ref{rem:interchange} (whether viewing expectation as a sum or integral), we can swap the order of differentiation and expectation for $t \in (-\delta, \delta)$:
 \[
 \frac{d}{dt} M_X(t) = \frac{d}{dt} \mathbb{E}[e^{tX}] = \mathbb{E}\left[ \frac{d}{dt} e^{tX} \right] = \mathbb{E}[X e^{tX}]
 \]
-Differentiating again:
+Differentiating again, the same justification applies:
 \[
 \frac{d^2}{dt^2} M_X(t) = \frac{d}{dt} \mathbb{E}[X e^{tX}] = \mathbb{E}\left[ \frac{d}{dt} (X e^{tX}) \right] = \mathbb{E}[X^2 e^{tX}]
 \]
-Continuing this process $p$ times, we arrive at[cite: 10]:
+Continuing this process $p$ times, we arrive at:
 \[
 \frac{d^p}{dt^p} M_X(t) = \mathbb{E}[X^p e^{tX}]
 \]
-Finally, we evaluate this $p$-th derivative at $t=0$[cite: 10]:
+This holds for all $t \in (-\delta, \delta)$. Finally, we evaluate this $p$-th derivative at $t=0$. Since $t=0$ is within the interval $(-\delta, \delta)$, the expression is well-defined:
 \[
 \left. \frac{d^p}{dt^p} M_X(t) \right|_{t=0} = \left. \mathbb{E}[X^p e^{tX}] \right|_{t=0} = \mathbb{E}[X^p e^{0 \cdot X}] = \mathbb{E}[X^p \cdot 1] = \mathbb{E}[X^p]
 \]
-This completes the proof[cite: 10].
+This completes the proof.
 \end{proof}
 
-\begin{remark}[Why is this useful?]
-Lemma 1.5 provides a powerful analytical technique. If we can find the MGF of a random variable (perhaps by evaluating the expectation $\mathbb{E}[e^{tX}]$ directly from its probability density/mass function), we can then find *any* moment $\mathbb{E}[X^p]$ simply by repeated differentiation and evaluation at $t=0$[cite: 2, 4]. This is often much easier than calculating $\mathbb{E}[X^p] = \int_{-\infty}^{\infty} x^p f(x) dx$ or $\mathbb{E}[X^p] = \sum_x x^p P(X=x)$ directly, especially for higher moments (large $p$).
+\begin{remark}[Why is this useful?] % Still uses the standard remark env. styled by mdframed
+Lemma 1.5 provides a powerful analytical technique. If we can find the MGF of a random variable (perhaps by evaluating the expectation $\mathbb{E}[e^{tX}]$ directly from its probability density/mass function), we can then find *any* moment $\mathbb{E}[X^p]$ simply by repeated differentiation and evaluation at $t=0$. This is often much easier than calculating $\mathbb{E}[X^p] = \int_{-\infty}^{\infty} x^p f(x) dx$ or $\mathbb{E}[X^p] = \sum_x x^p P(X=x)$ directly, especially for higher moments (large $p$).
 \end{remark}
 
 \end{document}
