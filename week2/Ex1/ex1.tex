@@ -1,0 +1,59 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath, amssymb}
+\usepackage[margin=1in]{geometry} % Adjust margins for better layout
+
+% Define indicator function command (condition as subscript)
+\newcommand{\indicator}[1]{\mathbb{I}_{#1}}
+% If you prefer the original style: \newcommand{\indicator}[1]{\mathbb{I}\{#1\}}
+
+\title{Probability for Statisticians - Course 52534 \\ \textbf{Exercise 1}}
+\date{} % No date displayed
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\noindent\rule{\textwidth}{0.4pt} % Horizontal line
+
+\vspace{0.5cm}
+
+\noindent \textbf{Instructions:} Answer the following questions. Explain and justify your answers. If a proof is required, present all steps of the proof.
+
+\vspace{0.5cm}
+
+\begin{enumerate}
+    \item Consider the random variable $X$ with the following cumulative distribution function (CDF):
+        \[
+            F_X(x)=\left\{\begin{array}{cl}
+                0                           & x<-1      \\
+                \frac{x}{4}+\frac{1}{2} & -1 \leq x<1 \\
+                1                           & x \geq 1
+            \end{array}\right.
+        \]
+        Calculate the following probabilities:
+        \begin{enumerate}
+            \item[(i)] $\mathrm{P}(X=0)$, $\mathrm{P}(X=1)$, $\mathrm{P}(X=-1)$
+            \item[(ii)] $\mathrm{P}(X < 1)$, $\mathrm{P}(X > -1)$
+            \item[(iii)] $\mathrm{P}(|X| \geq 1/2)$, $\mathrm{P}(X \leq 0)$, $\mathrm{P}(X < 0)$
+        \end{enumerate}
+
+        \vspace{0.5cm}
+
+    \item Let $X \sim \text{Exp}(\lambda)$. Find the cumulative distribution function (CDF) of the following random variables:
+        \begin{enumerate} % Using \item for automatic labeling (i), (ii), (iii)
+            \item $Y=\sum_{j=0}^{\infty} j \indicator{X \in[j, j+1]}$
+            \item $Z=X \indicator{X \in[1,2]}$
+            \item $V=(X-c) \indicator{X \geq c}$
+        \end{enumerate}
+
+        \vspace{0.5cm}
+
+    \item Let $F$ be the CDF of a purely continuous random variable. Assume $F$ is strictly monotonically increasing on the support of the distribution and continuous, with its image being the interval $(0,1)$. Since $F$ is strictly monotonically increasing, its inverse function $G = F^{-1}$ exists, is also strictly monotonically increasing, and maps from $(0,1)$ to the support of the distribution.
+        \begin{enumerate}
+            \item[(a)] Let $X \sim U(0,1)$. Show that the distribution of $Y = G(X)$ is $F$, i.e., the CDF of $Y$, $F_Y$, satisfies $F_Y = F$.
+            \item[(b)] Assume that $X$ has the distribution $F$, i.e., $F_X = F$. Let $Y = F(X)$. Show that $Y \sim U(0,1)$.
+        \end{enumerate}
+
+\end{enumerate}
+
+\end{document}

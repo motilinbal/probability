@@ -1,0 +1,183 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{parskip} % Adds space between paragraphs
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} % Use a modern font
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{example}[definition]{Example}
+\newtheorem{remark}[definition]{Remark}
+
+\newcommand{\E}{\mathbb{E}} % Expectation symbol
+\newcommand{\Var}{\mathrm{Var}} % Variance symbol
+\newcommand{\R}{\mathbb{R}} % Real numbers
+\newcommand{\N}{\mathbb{N}} % Natural numbers
+\newcommand{\I}{\mathbf{1}} % Indicator function
+
+\title{Lecture Notes: Expected Value, MGFs, and Transformations}
+\author{Fundamentals of Probability}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Expected Value}
+
+The concept of expected value formalizes the intuitive notion of the "average" outcome of a random phenomenon. It represents the weighted average of all possible values a random variable can take, where the weights are the corresponding probabilities (for discrete variables) or probability densities (for continuous variables).
+
+\begin{definition}[Expected Value]
+Let $X$ be a random variable.
+\begin{itemize}
+    \item If $X$ is a \textbf{discrete} random variable with probability mass function (PMF) $p_X(x)$, its expected value is defined as:
+    \[ \E[X] = \sum_{x} x \cdot p_X(x) \]
+    provided the sum converges absolutely, i.e., $\sum_{x} |x| p_X(x) < \infty$.
+
+    \item If $X$ is a \textbf{continuous} random variable with probability density function (PDF) $f_X(x)$, its expected value is defined as:
+    \[ \E[X] = \int_{-\infty}^{\infty} x \cdot f_X(x) \, dx \]
+    provided the integral converges absolutely, i.e., $\int_{-\infty}^{\infty} |x| f_X(x) \, dx < \infty$.
+
+    \item For a \textbf{general (mixed)} random variable, whose CDF $F_X(x)$ might have jumps at points $x_i$ and also continuous parts, a more general definition can be used, often expressed using the Riemann-Stieltjes integral or by combining sums and integrals over the discrete and continuous parts, respectively. A common representation combines these:
+    \[ \E[X] = \sum_{i} x_i P(X=x_i) + \int_{x \text{ is a point of continuity}} x f_X(x) \, dx \]
+    where the sum is over all points $x_i$ where $F_X$ has a jump (discrete part) and the integral is over the continuous part where the PDF $f_X$ exists.
+\end{itemize}
+\end{definition}
+
+\begin{remark}[Splitting into Positive and Negative Parts]
+Sometimes it's useful to consider the positive and negative parts of a random variable $X$. Define:
+\begin{itemize}
+    \item $X^+ = \max(X, 0)$ (the positive part)
+    \item $X^- = \max(-X, 0)$ (the negative part, note $X^-$ is non-negative)
+\end{itemize}
+Then $X = X^+ - X^-$ and $|X| = X^+ + X^-$. The expected value $\E[X]$ exists (is finite) if and only if both $\E[X^+]$ and $\E[X^-]$ are finite. In this case, $\E[X] = \E[X^+] - \E[X^-]$.
+\end{remark}
+
+\begin{definition}[Existence of Expected Value]
+The expected value $\E[X]$:
+\begin{itemize}
+    \item \textbf{Exists and is finite} if $\E[|X|] < \infty$. This is equivalent to both $\E[X^+]$ and $\E[X^-]$ being finite.
+    \item \textbf{Is defined} but potentially infinite ($\infty$ or $-\infty$) if one of $\E[X^+]$ or $\E[X^-]$ is finite and the other is infinite.
+    \item \textbf{Is undefined} (or does not exist) if both $\E[X^+]$ and $\E[X^-]$ are infinite. A classic example is the Cauchy distribution.
+\end{itemize}
+\end{definition}
+
+\begin{example}[Expected Value of Exponential Distribution]
+Let $X \sim \text{Exp}(\lambda)$, meaning its PDF is $f_X(x) = \lambda e^{-\lambda x}$ for $x \ge 0$ and $0$ otherwise. Since $X$ only takes non-negative values, $X = X^+$ and $X^- = 0$. We compute $\E[X]$:
+\[ \E[X] = \int_{0}^{\infty} x \cdot \lambda e^{-\lambda x} \, dx \]
+We use integration by parts: $\int u \, dv = uv - \int v \, du$.
+Let $u = x$ and $dv = \lambda e^{-\lambda x} \, dx$.
+Then $du = dx$ and $v = -e^{-\lambda x}$.
+\begin{align*} \E[X] &= \left[ x (-e^{-\lambda x}) \right]_0^\infty - \int_0^\infty (-e^{-\lambda x}) \, dx \\ &= \left( \lim_{x\to\infty} -x e^{-\lambda x} - (0 \cdot -e^0) \right) + \int_0^\infty e^{-\lambda x} \, dx \\ &= (0 - 0) + \left[ -\frac{1}{\lambda} e^{-\lambda x} \right]_0^\infty \\ &= 0 + \left( \lim_{x\to\infty} -\frac{1}{\lambda} e^{-\lambda x} - \left(-\frac{1}{\lambda} e^0\right) \right) \\ &= 0 + \left( 0 - \left(-\frac{1}{\lambda}\right) \right) \\ &= \frac{1}{\lambda} \end{align*}
+Note: $\lim_{x\to\infty} -x e^{-\lambda x} = 0$ can be shown using L'Hôpital's rule on $-x/e^{\lambda x}$.
+The expected value is finite and equals $1/\lambda$.
+\end{example}
+
+
+\section{Moment Generating Functions (MGFs)}
+
+Moment Generating Functions provide a powerful alternative way to find moments of a distribution (like the mean $\E[X]$ and variance $\Var(X)$) and to characterize the distribution itself.
+
+\begin{definition}[Moment Generating Function (MGF)]
+Let $X$ be a random variable. Its Moment Generating Function (MGF), denoted $M_X(t)$, is defined as:
+\[ M_X(t) = \E[e^{tX}] \]
+provided this expectation exists (is finite) for $t$ in some open interval containing $0$, i.e., for $t \in (-h, h)$ for some $h > 0$.
+\end{definition}
+
+\begin{remark}[Calculating the MGF]
+\begin{itemize}
+    \item If $X$ is discrete with PMF $p_X(x)$: $M_X(t) = \sum_x e^{tx} p_X(x)$.
+    \item If $X$ is continuous with PDF $f_X(x)$: $M_X(t) = \int_{-\infty}^{\infty} e^{tx} f_X(x) \, dx$.
+\end{itemize}
+\end{remark}
+
+\begin{theorem}[Moments from MGF]
+If the MGF $M_X(t)$ exists in an interval around $t=0$, then all moments of $X$ exist ($\E[X^k] < \infty$ for all $k \ge 1$). Furthermore, the $k$-th moment can be found by differentiating the MGF $k$ times and evaluating at $t=0$:
+\[ \E[X^k] = \frac{d^k}{dt^k} M_X(t) \bigg|_{t=0} = M_X^{(k)}(0) \]
+In particular:
+\begin{itemize}
+    \item $\E[X] = M_X'(0)$
+    \item $\E[X^2] = M_X''(0)$
+    \item $\Var(X) = \E[X^2] - (\E[X])^2 = M_X''(0) - (M_X'(0))^2$
+\end{itemize}
+\end{theorem}
+
+\begin{remark}[Basic Property]
+Note that $M_X(0) = \E[e^{0 \cdot X}] = \E[1] = 1$ for any random variable $X$.
+\end{remark}
+
+\begin{theorem}[Uniqueness of MGFs]
+If two random variables $X$ and $Y$ have MGFs $M_X(t)$ and $M_Y(t)$ that exist and are equal for all $t$ in an open interval around $0$, then $X$ and $Y$ have the same probability distribution.
+\end{theorem}
+\begin{remark}
+This theorem is incredibly useful. It implies that the MGF uniquely determines the distribution. If you can calculate the MGF of a random variable and recognize it as the MGF of a known distribution (like Normal, Poisson, Exponential, etc.), then you know your variable follows that distribution.
+\end{remark}
+
+
+\section{Example: Transformation of a Random Variable}
+
+Let's consider finding the distribution of a new random variable that is defined as a function of another random variable whose distribution we know. A common method is to find the Cumulative Distribution Function (CDF) of the new variable.
+
+\begin{definition}[Cumulative Distribution Function (CDF)]
+The CDF of a random variable $Y$, denoted $F_Y(y)$, is defined as $F_Y(y) = P(Y \le y)$ for all $y \in \R$.
+\end{definition}
+
+\begin{example}[Finding the CDF of a Transformed Variable]
+Let $X \sim \text{Exp}(\lambda)$, so its CDF is $F_X(x) = 1 - e^{-\lambda x}$ for $x \ge 0$, and $F_X(x) = 0$ for $x < 0$.
+Define a new random variable $Z = X \cdot \I(X \in [1, 2])$, where $\I(\cdot)$ is the indicator function: $\I(A) = 1$ if event $A$ occurs, and $0$ otherwise. We want to find the CDF of $Z$, $F_Z(z) = P(Z \le z)$.
+
+\textbf{Step 1: Determine the possible values of Z.}
+\begin{itemize}
+    \item If $X \in [1, 2]$, then $\I(X \in [1, 2]) = 1$, so $Z = X$. In this case, $Z$ takes values in $[1, 2]$.
+    \item If $X \notin [1, 2]$ (i.e., $X < 1$ or $X > 2$), then $\I(X \in [1, 2]) = 0$, so $Z = 0$.
+\end{itemize}
+So, the random variable $Z$ can only take the value $0$ or values in the interval $[1, 2]$. This is a mixed random variable (it has a discrete part at $0$ and a continuous part over $[1, 2]$).
+
+\textbf{Step 2: Calculate the CDF $F_Z(z) = P(Z \le z)$ piecewise.}
+
+\begin{itemize}
+    \item \textbf{Case 1: $z < 0$} \\
+    Since $Z$ can only be $0$ or take values in $[1, 2]$, it can never be less than $0$.
+    \[ F_Z(z) = P(Z \le z) = P(\emptyset) = 0 \]
+
+    \item \textbf{Case 2: $0 \le z < 1$} \\
+    If $z$ is in this range, the only way $Z \le z$ can happen is if $Z=0$.
+    \[ F_Z(z) = P(Z \le z) = P(Z=0) \]
+    The event $Z=0$ occurs if and only if $X \notin [1, 2]$.
+    \begin{align*} P(Z=0) &= P(X \notin [1, 2]) \\ &= P(X < 1 \text{ or } X > 2) \\ &= P(X < 1) + P(X > 2) \quad \text{(since } X \text{ is continuous)} \\ &= F_X(1^-) + (1 - P(X \le 2)) \\ &= F_X(1) + (1 - F_X(2)) \\ &= (1 - e^{-\lambda \cdot 1}) + (1 - (1 - e^{-\lambda \cdot 2})) \\ &= 1 - e^{-\lambda} + e^{-2\lambda} \end{align*}
+    So, for $0 \le z < 1$, $F_Z(z) = 1 - e^{-\lambda} + e^{-2\lambda}$. Note this is the size of the jump at $z=0$.
+
+    \item \textbf{Case 3: $1 \le z \le 2$} \\
+    Here, $Z \le z$ can happen if $Z=0$ or if $Z \in (0, z]$. Since $Z$ only takes values in $[1, 2]$ when it's positive, the second part means $Z \in [1, z]$.
+    \begin{align*} F_Z(z) &= P(Z \le z) \\ &= P(Z=0 \text{ or } 1 \le Z \le z) \\ &= P(Z=0) + P(1 \le Z \le z) \quad \text{(disjoint events contributing to Z)} \end{align*}
+    The event $1 \le Z \le z$ occurs if and only if $X \in [1, 2]$ (so $Z=X$) AND $1 \le X \le z$. This simplifies to just $1 \le X \le z$.
+    \begin{align*} P(1 \le X \le z) &= P(X \le z) - P(X < 1) \\ &= F_X(z) - F_X(1^-) \\ &= F_X(z) - F_X(1) \\ &= (1 - e^{-\lambda z}) - (1 - e^{-\lambda}) \\ &= e^{-\lambda} - e^{-\lambda z} \end{align*}
+    Combining with $P(Z=0)$:
+    \begin{align*} F_Z(z) &= P(Z=0) + P(1 \le X \le z) \\ &= (1 - e^{-\lambda} + e^{-2\lambda}) + (e^{-\lambda} - e^{-\lambda z}) \\ &= 1 + e^{-2\lambda} - e^{-\lambda z} \end{align*}
+    So, for $1 \le z \le 2$, $F_Z(z) = 1 + e^{-2\lambda} - e^{-\lambda z}$.
+
+    \item \textbf{Case 4: $z > 2$} \\
+    Since the maximum possible value for $Z$ is $2$ (when $X=2$), if $z > 2$, the event $Z \le z$ includes all possible outcomes for $Z$.
+    \[ F_Z(z) = P(Z \le z) = 1 \]
+\end{itemize}
+
+\textbf{Summary of the CDF $F_Z(z)$:}
+\[
+F_Z(z) =
+\begin{cases}
+0 & \text{if } z < 0 \\
+1 - e^{-\lambda} + e^{-2\lambda} & \text{if } 0 \le z < 1 \\
+1 + e^{-2\lambda} - e^{-\lambda z} & \text{if } 1 \le z \le 2 \\
+1 & \text{if } z > 2
+\end{cases}
+\]
+We can check that this CDF starts at 0, ends at 1, is non-decreasing, and right-continuous. It has a jump of size $1 - e^{-\lambda} + e^{-2\lambda}$ at $z=0$, and is continuous for $z>0$.
+\end{example}
+
+\end{document}
