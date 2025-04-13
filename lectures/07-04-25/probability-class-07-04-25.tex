@@ -1,0 +1,391 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{fancybox}
+\usepackage{hyperref}
+
+% Theorem setup
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% For announcements
+\newenvironment{administrative_note}
+  {\begin{center}\begin{Sbox}\begin{minipage}{0.9\textwidth}\small\textbf{Administrative Information:}\par}
+  {\end{minipage}\end{Sbox}\fbox{\TheSbox}\end{center}}
+
+\newcommand{\indicator}{\mathbb{I}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE\bf Probability -- Lecture 7 (25 Apr)}\\
+    \vspace{0.2em}
+    {\large\it Concepts: Moment Generating Functions, Characteristic Functions, Probability Generating Functions, and Concentration Inequalities}
+\end{center}
+
+\vspace{1.5em}
+
+% Administrative Section
+\begin{administrative_note}
+\begin{itemize}[leftmargin=1.7em]
+    \item \textbf{Course Materials:} Some lesson summaries are being prepared by a designated student and will be shared (at least for some lectures) soon. If you are missing materials or need anything repeated, simply request it from the lecturer.
+    \item \textbf{Exercise Submission:} 
+    \begin{itemize}
+        \item Exercises \emph{do not} require submission unless otherwise stated.
+        \item Worked solutions may be posted after the solution period ends, to allow everyone a chance to attempt the problems independently first.
+        \item Grading is not dependent on submission of exercises (unless a particular task is made mandatory).
+    \end{itemize}
+    \item \textbf{Exam Preparation:}
+    \begin{itemize}
+        \item Prior to exams, you will receive comprehensive, organized materials, including all solutions and relevant notes.
+        \item If specific topics or additional clarifications are needed, please request them ahead of exam time.
+    \end{itemize}
+    \item \textbf{Recent Lectures:}
+    \begin{itemize}
+        \item Not all previous lectures may be recorded or uploaded; selected materials are made available as appropriate. If in doubt, consult the written materials and contact the lecturer with questions.
+    \end{itemize}
+    \item \textbf{Course Policy:}
+    \begin{itemize}
+        \item Participation, attendance, and preparation are encouraged. However, you are responsible for your decisions regarding engagement.
+        \item The course schedule is flexible around the semester midpoint (approximately 13 lessons).
+    \end{itemize}
+    \item \textbf{Supplementary Resources:}
+    \begin{itemize}
+        \item Video lectures from last year (by Ben Yakir) are available and can be used as an additional resource. These cover similar material, though possibly with a different emphasis.
+    \end{itemize}
+    \item \textbf{Other Announcements:}
+    \begin{itemize}
+        \item Office hours are available for your questions. Do not hesitate to use this opportunity.
+        \item Administrative issues (e.g., IT/recording glitches, communication with the department) are being addressed as they arise.
+    \end{itemize}
+\end{itemize}
+\end{administrative_note}
+
+\tableofcontents
+
+%=========================================================================
+\section{Introduction and Motivation}
+Probability theory is not only about calculating the likelihood of events or the expectation of a random variable. A deeper aim is understanding \emph{how} random variables behave, how sharply they cluster around typical values, and how their distributions are determined. Today's class introduces powerful tools for this: moment generating functions, characteristic functions, probability generating functions, and central ideas in concentration inequalities. Each concept unlocks a new level of understanding.
+
+%=========================================================================
+\section{Moment Generating Functions (MGFs)}
+
+\subsection{Motivation}
+How can we concisely summarize all the moments of a random variable? Is there a "function" whose knowledge is as good as knowing the full distribution? The moment generating function gives us exactly this kind of handle. Not only does it encode all moments (when defined), but, remarkably, it can uniquely determine the distribution.
+
+\subsection{Definition and Basic Properties}
+
+\begin{definition}[Moment Generating Function (MGF)]
+    Let $X$ be a real-valued random variable. The \emph{moment generating function} $M_X(t)$ is defined by
+    \[
+        M_X(t) = \mathbb{E}\left[e^{tX}\right]
+    \]
+    for all real numbers $t$ for which the expectation exists (possibly just for $t$ in a neighborhood of $0$).
+\end{definition}
+
+\begin{remark}
+    The name ``moment generating" refers to the following property: provided $M_X(t)$ is finite in a neighborhood of $t=0$, the derivatives of $M_X$ at $0$ yield the moments of $X$:
+    \[
+        M_X^{(k)}(0) = \frac{d^k}{dt^k} M_X(t) \Big|_{t=0} = \mathbb{E}[X^k].
+    \]
+    Thus, the MGF encodes \emph{all} the moments of $X$ in its Taylor expansion.
+\end{remark}
+
+\subsection{Why MGFs? An Intuitive View}
+MGFs offer several advantages:
+\begin{itemize}
+    \item If the MGF exists in a neighborhood of $0$, it uniquely determines the law of $X$.
+    \item MGFs make computing moments efficient: simply take derivatives.
+    \item Sums of independent random variables correspond to products of MGFs (useful for studying sums and convolutions).
+    \item Many limit theorems (e.g., Central Limit Theorem) are neatly proved using MGFs.
+\end{itemize}
+
+\subsection{Existence and Domain}
+The MGF $M_X(t)$ is not always defined everywhere -- it may only be finite for $t$ in a certain interval about $0$. For example, in "heavy tail" distributions, even low order moments may diverge.
+
+\vspace{1em}
+\noindent\textbf{Domain of Definition:} Denote
+\[
+    D = \{ t \in \mathbb{R} : M_X(t) < \infty \},
+\]
+which is always a convex set (typically an open interval containing $0$).
+
+%-------------------------------------------------------------------------
+\subsection{MGFs and Moments: The Differentiation Principle}
+
+\begin{theorem}[Moments from the MGF]\label{thm:mgf-moments}
+    Suppose $M_X(t)$ is finite for $t$ in an open interval containing $0$. Then, for each integer $k\ge1$,
+    \begin{equation}
+        \mathbb{E}[X^k] = \left. \frac{d^k}{dt^k} M_X(t) \right|_{t=0}
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    To see why, recall the Taylor expansion
+    \[
+      e^{tX} = 1 + t X + \frac{t^2}{2!}X^2 + \dotsb + \frac{t^k}{k!}X^k + \cdots
+    \]
+    Taking expectation (when justified by finiteness),
+    \[
+      M_X(t) = \mathbb{E}[e^{tX}] = 1 + t \mathbb{E}[X] + \frac{t^2}{2!}\mathbb{E}[X^2] + \cdots + \frac{t^k}{k!}\mathbb{E}[X^k] + \cdots
+    \]
+    The coefficient of $t^k/k!$ is $\mathbb{E}[X^k]$, so by differentiating $k$ times with respect to $t$ and evaluating at $0$, we retrieve the $k$th moment.
+\end{proof}
+
+\begin{remark}
+    Under mild technical conditions (i.e., dominated convergence), taking derivatives under the expectation is justified when $M_X$ is finite in a neighborhood.
+\end{remark}
+
+%-------------------------------------------------------------------------
+\subsection{A Fundamental Property: Uniqueness}
+
+\begin{theorem}[Uniqueness of the MGF]
+    If $X$ and $Y$ are random variables with MGFs $M_X$ and $M_Y$ which are both finite in an open interval around $0$, and $M_X(t) = M_Y(t)$ for all $t$ in such an interval, then $X$ and $Y$ have the same distribution.
+\end{theorem}
+
+\begin{remark}
+    In other words, the MGF (when it exists in a neighborhood) uniquely characterizes the distribution.
+\end{remark}
+
+%-------------------------------------------------------------------------
+\subsection{Example: The Binomial Distribution}
+\begin{example}[MGF of the Binomial Distribution]\mbox{}\\
+    Let $X \sim \mathrm{Bin}(n, p)$. That is, $X$ is the number of ``successes" in $n$ independent Bernoulli$(p)$ trials. We compute its MGF.
+
+    \vspace{0.5em}
+    \textbf{Step 1: Recall the probability mass function.}
+    \[
+        \mathbb{P}(X = k) = \binom{n}{k} p^k (1-p)^{n-k}, \qquad k = 0, 1, \dotsc, n.
+    \]
+    \textbf{Step 2: Compute the MGF.}
+    \begin{align*}
+        M_X(t) &= \mathbb{E}[e^{tX}] = \sum_{k=0}^n e^{t k} \binom{n}{k} p^k (1-p)^{n-k}. \\
+        &= \sum_{k=0}^n \binom{n}{k} (p e^{t})^k (1-p)^{n-k} \\
+        &= (p e^t + 1 - p)^n
+    \end{align*}
+    So the moment generating function for $X$ is:
+    \[
+        \boxed{M_X(t) = (p e^t + 1 - p)^n}
+    \]
+    \textbf{Step 3: Computing Moments.}
+    \begin{itemize}
+        \item \emph{Mean:} The first moment is $\mathbb{E}[X] = M_X'(0)$.
+            \begin{align*}
+                M_X'(t) &= n (p e^t + 1-p)^{n-1} p e^t, \\
+                M_X'(0) &= n (p + 1 - p)^{n-1} p = n p.
+            \end{align*}
+            Thus, as expected, the mean of $\mathrm{Bin}(n,p)$ is $n p$.
+        \item \emph{Variance:} The second moment is $\mathbb{E}[X^2] = M_X''(0)$. The calculation can be carried through (using the product and chain rules), ultimately yielding
+            \[
+                \mathrm{Var}(X) = \mathbb{E}[X^2] - (\mathbb{E} X)^2 = n p (1-p)
+            \]
+            (explicit calculation omitted for brevity; students are encouraged to carry it out as a skill exercise).
+    \end{itemize}
+\end{example}
+
+\vspace{1em}
+\noindent\textbf{Further Exercise (Optional, for mastery):} Use the MGF to compute the third moment of the binomial distribution.
+
+%=========================================================================
+\section{Using the MGF to Identify Distributions: A Transform Example}
+
+\subsection{Motivation}
+Sometimes, we are given a random variable and a nonlinear transformation thereof. How can we find the distribution of the transformed variable? The MGF can be a detective's tool!
+
+\begin{example}[Uniform $\to$ Exponential via $Y = -\log X$]
+Suppose $X \sim \mathrm{Uniform}(0,1)$. Define $Y = -\log X$. What is the distribution of $Y$?
+
+\textbf{Step 1: Compute the MGF of $Y$}
+\begin{align*}
+    M_Y(t) &= \mathbb{E}[e^{tY}] = \mathbb{E}[e^{t(-\log X)}] = \mathbb{E}[X^{-t}]
+\end{align*}
+
+Since $X \sim \mathrm{Uniform}(0,1)$, we have
+\[
+    M_Y(t) = \int_0^1 x^{-t} dx = \left. \frac{x^{1-t}}{1-t} \right|_{0}^1 = \frac{1}{1-t}, \quad (t < 1)
+\]
+
+\textbf{Step 2: Recognize the MGF!}\\
+Recall that the MGF of the $\mathrm{Exp}(1)$ (exponential distribution with parameter $\lambda=1$) is also $M(t) = \frac{1}{1-t}$ for $t < 1$. Therefore, \emph{the distribution of $Y = -\log X$ is $\mathrm{Exp}(1)$.}
+
+\textbf{Summary:}
+\[
+    \boxed{
+        \text{If } X \sim \mathrm{Uniform}(0,1), \text{ then } Y = -\log X \sim \mathrm{Exp}(1).
+    }
+\]
+
+\textbf{Student Insight:} This type of transformation is extremely common in simulations and stochastic modeling, because it makes sampling from exponential distributions possible using easily generated uniform random variables (inverse transform method).
+\end{example}
+
+%======================================================================
+\section{Characteristic Functions}
+
+\subsection{Motivation and Definition}
+MGFs are powerful but sometimes limited: they do not always exist (for all $t$), especially for distributions with heavy tails.
+
+We can always define the \textbf{characteristic function} of $X$ for \emph{any} random variable:
+
+\begin{definition}[Characteristic Function]
+    The characteristic function of a real random variable $X$ is
+    \[
+      \varphi_X(t) = \mathbb{E}[e^{itX}], \qquad t \in \mathbb{R}
+    \]
+    where $i = \sqrt{-1}$ is the imaginary unit.
+\end{definition}
+
+\subsection{Why Are Characteristic Functions Useful?}
+\begin{itemize}
+    \item They \textbf{always exist} for every real $t$ (since $|e^{itX}|=1$ for all $X,t$), in contrast with MGFs.
+    \item They \emph{uniquely determine} the distribution (much like MGFs).
+    \item They are crucial in advanced probability, measure-theoretic probability, and especially for central limit and convergence theorems.
+    \item They have convenient algebraic properties: the CF of a sum of independent variables is the product of their individual CFs.
+\end{itemize}
+
+\begin{remark}
+    Euler's formula connects the characteristic function to both cosine and sine:
+    \[
+        e^{itX} = \cos(tX) + i \sin(tX)
+    \]
+    The characteristic function, therefore, encodes both "frequency" (via the cosine) and "phase" (via the sine) components of the distribution.
+\end{remark}
+
+%=========================================================================
+\section{Probability Generating Functions (PGFs)}
+
+\subsection{Motivation}
+MGFs are tailored to variables that live on the real line (and may have continuous distributions), but for integer-valued non-negative random variables (especially discrete ones like binomial, Poisson, geometric, etc.), another generating function proves handy: the \textbf{probability generating function} (PGF).
+
+\begin{definition}[Probability Generating Function (PGF)]
+    Let $X$ be a non-negative integer-valued random variable. The probability generating function is
+    \[
+     P_X(s) = \mathbb{E}[s^X] = \sum_{k=0}^{\infty} \Pr(X = k) s^k
+    \]
+    for all $s$ such that the sum converges (at least $|s| \leq 1$).
+\end{definition}
+
+\subsection{Why Use PGFs?}
+\begin{itemize}
+    \item They encapsulate the entire probability mass function in a single function.
+    \item As with MGFs, moments can be computed by differentiating the PGF:
+    \[
+     \E[X] = P_X'(1)
+    \]
+    \item They are especially useful for sums of independent discrete random variables (the PGF of their sum is the product of the PGFs).
+\end{itemize}
+
+\subsection{Relation to MGFs}
+There is a close relationship between the MGF and the PGF:
+\[
+    M_X(t) = \E[e^{tX}] = \E[(e^{t})^X] = P_X(e^{t})
+\]
+and similarly,
+\[
+    P_X(s) = M_X(\log s)
+\]
+when the arguments are defined.
+
+%-------------------------------------------------------------------------
+\subsection{Example: The Geometric Distribution as a PGF}
+\begin{example}[PGF of the Geometric Distribution]
+Let $X$ be a geometric random variable with parameter $p$, i.e.,
+\[
+    \Pr(X = n) = (1-p)^{n-1}p, \quad n = 1,2,3,\ldots
+\]
+
+Its PGF is
+\begin{align*}
+    P_X(s) &= \E[s^X] = \sum_{n=1}^{\infty} s^{n} (1-p)^{n-1} p \\
+           &= p s \sum_{n=0}^{\infty} [(1-p) s]^n \\
+           &= \frac{p s}{1 - (1-p)s}, \qquad \text{for } |s| < 1/(1-p)
+\end{align*}
+This formula encodes all the probabilities in the coefficients of $s^n$.
+\end{example}
+
+\begin{remark}
+For the other notation seen, sometimes $n$ counts the number of failures (with $n = 0,1,2,\dotsc$). In this version, the formula and range change correspondingly; check the conventions in your textbooks or the context of a given problem.
+\end{remark}
+
+%=========================================================================
+\section{Concentration Inequalities}
+
+\subsection{Motivation}
+In probability theory, a key question is \emph{how tightly} a random variable clusters around its typical value (such as its mean or median). Concentration inequalities provide quantitative upper bounds on the likelihood of large deviations from such typical values.
+
+\textbf{Why are these important?} In many real-world situations, you may know only the expectation or variance of a process, and not its full distribution. Concentration inequalities let you bound the chance of seeing an unusually extreme outcome, even in such minimal-information settings. These inequalities are central to statistics, data science, algorithms and machine learning.
+
+\subsection{Markov's Inequality}
+
+\begin{theorem}[Markov's Inequality]\label{thm:markov}
+Let $X$ be a non-negative random variable ($X \geq 0$ almost surely), and let $a > 0$. Then
+\[
+    \Pr( X \geq a ) \leq \frac{\mathbb{E}[X]}{a}
+\]
+\end{theorem}
+
+\begin{proof}
+This elegant proof relies on splitting $X$ into ``big" and ``small" parts. 
+\begin{align*}
+    \mathbb{E}[X] 
+    &= \mathbb{E}[ X \cdot \indicator_{X \geq a} ] + \mathbb{E}[ X \cdot \indicator_{X < a} ] \\
+    &\geq \mathbb{E}[ X \cdot \indicator_{X \geq a} ] \\
+    &\geq a \cdot \mathbb{E}[ \indicator_{X \geq a} ] \\
+    &= a \cdot \Pr( X \geq a )
+\end{align*}
+Dividing both sides by $a$ yields the result.
+\end{proof}
+
+\begin{remark}
+This inequality is striking because it requires only the non-negativity of $X$ and knowledge of its expectation. It is especially useful for proving tail bounds and for results where detailed distributional knowledge is absent.
+\end{remark}
+
+\subsection{Discussion and Further Examples}
+
+\begin{example}[Application: Markov's Inequality and Exam Scores]
+Suppose $X$ is the grade (between $0$ and $100$) of a randomly chosen student, with $\mathbb{E}[X] = 60$. What is the maximum proportion of students who could have scored at least $80$?
+
+Using Markov's Inequality:
+\[
+\Pr( X \geq 80 ) \leq \frac{60}{80} = 0.75
+\]
+So, no more than $75\%$ of students could have scored at least $80$ (the bound is not always tight; it's an upper bound).
+\end{example}
+
+\begin{remark}
+Markov's Inequality is just the beginning; much sharper results become possible when more is known (e.g., variance), as in Chebyshev's Inequality, Chernoff bounds, and so on, which will be treated in follow-up lectures.
+\end{remark}
+
+%=========================================================================
+\section{Summary and Further Directions}
+
+We've seen today three ``generating" function techniques---the moment generating function, the characteristic function, and the probability generating function---each encoding crucial aspects of a random variable, each offering unique analytic perspectives and computational leverage.
+
+We also introduced Markov's inequality, a foundational tool for understanding the likelihood of large deviations.
+
+\begin{center}
+    \vspace{2em}
+    \Large
+    \textbf{Questions?}\\
+    \large
+    Please feel free to ask during office hours or by email! Curiosity is the engine of mathematical understanding.
+\end{center}
+
+\begin{administrative_note}
+\textbf{Reminders:}
+\begin{itemize}[leftmargin=1.7em]
+    \item Review the posted materials for each lecture, especially for topics not recorded.
+    \item Engage with exercises independently before consulting posted solutions.
+    \item If you have logistical or academic needs, reach out promptly.
+\end{itemize}
+\textbf{Good luck and enjoy your exploration of probability theory!}
+\end{administrative_note}
+
+\end{document}
