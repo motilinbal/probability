@@ -1,0 +1,291 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage{amsmath, amssymb}
+\usepackage[margin=1in]{geometry} % Standard margins
+\usepackage{amsthm} % Added for proof environment
+
+% Basic Theorem Styles (adjust as needed)
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{property}[theorem]{Property}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% Math Operators
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{\operatorname{Var}}
+% \DeclareMathOperator{\Pr}{\operatorname{Pr}} % Removed because \Pr is already defined by LaTeX
+
+% Title Setup
+\title{An Introduction to Generating Functions in Probability}
+\author{Undergraduate Mathematics Exposition} % Placeholder
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction: Beyond PMFs and PDFs}
+
+When studying random variables, the Probability Mass Function (PMF) for discrete variables or the Probability Density Function (PDF) for continuous variables provides a complete description of the distribution. However, sometimes we want different ways to represent or summarize this information. Generating functions provide powerful alternative representations. They "package" the probability distribution into a single function, and operations on this function (like differentiation) can reveal important properties of the original distribution, such as its moments, or simplify problems involving sums of independent random variables.
+
+We will explore three main types:
+\begin{itemize}
+    \item \textbf{Probability Generating Functions (PGFs):} For discrete variables on non-negative integers.
+    \item \textbf{Moment Generating Functions (MGFs):} For discrete or continuous variables, but may not always exist.
+    * \textbf{Characteristic Functions (CFs):} For any variable; always exists and is fundamental theoretically.
+\end{itemize}
+
+\section{Probability Generating Functions (PGFs)}
+
+\subsection{Motivation and Definition}
+
+Consider a discrete random variable $X$ that can only take non-negative integer values, $k \in \{0, 1, 2, \dots\}$. How can we encode its entire PMF, $\Pr(X=k)$, into a single function? The PGF achieves this by using the probabilities as coefficients in a power series.
+
+\begin{definition}[Probability Generating Function (PGF)]
+Let $X$ be a discrete random variable taking values in $\{0, 1, 2, \dots\}$ with PMF $p_k = \Pr(X=k)$. The \textbf{Probability Generating Function (PGF)} of $X$ is defined as:
+\begin{equation}
+    P_X(s) = \E[s^X] = \sum_{k=0}^{\infty} \Pr(X=k) s^k = p_0 s^0 + p_1 s^1 + p_2 s^2 + \dots
+\end{equation}
+where $s$ is a real (or complex) variable. This power series converges at least for $|s| \le 1$.
+\end{definition}
+
+\begin{remark}
+The variable $s$ is often treated as a "dummy" variable. The function $P_X(s)$ itself contains the information about the distribution.
+\end{remark}
+
+\subsection{Key Properties and Uses}
+
+\begin{property}[Basic Properties]~
+\begin{enumerate}
+    \item $P_X(1) = \sum_{k=0}^{\infty} \Pr(X=k) (1)^k = \sum_{k=0}^{\infty} \Pr(X=k) = 1$. (The sum of all probabilities is 1).
+    \item $P_X(0) = \Pr(X=0) (0)^0 + \Pr(X=1) (0)^1 + \dots = \Pr(X=0)$ (assuming $0^0=1$). The value at $s=0$ gives the probability of the outcome $k=0$.
+\end{enumerate}
+\end{property}
+
+\begin{property}[Generating Probabilities]
+The PGF is named because it "generates" the probabilities via differentiation at $s=0$. Recall the Taylor series expansion of $P_X(s)$ around $s=0$:
+$$ P_X(s) = P_X(0) + \frac{P'_X(0)}{1!}s + \frac{P''_X(0)}{2!}s^2 + \dots + \frac{P_X^{(k)}(0)}{k!}s^k + \dots $$
+Comparing this to the definition $P_X(s) = \sum_{k=0}^{\infty} \Pr(X=k) s^k$, we see by matching coefficients of $s^k$:
+\begin{equation}
+    \Pr(X=k) = \frac{P_X^{(k)}(0)}{k!}
+\end{equation}
+where $P_X^{(k)}(0)$ is the k-th derivative of $P_X(s)$ evaluated at $s=0$.
+\end{property}
+
+\begin{property}[Factorial Moments]
+The derivatives of the PGF at $s=1$ generate the \textbf{factorial moments} of $X$.
+The k-th factorial moment is defined as $E[X^{(k)}] = \E[X(X-1)\dots(X-k+1)]$.
+Differentiating the PGF $k$ times and setting $s=1$:
+\begin{align*}
+    P'_X(s) &= \frac{d}{ds} \sum_{k=0}^{\infty} p_k s^k = \sum_{k=1}^{\infty} k p_k s^{k-1} \\
+    \implies P'_X(1) &= \sum_{k=1}^{\infty} k p_k = \E[X] = \E[X^{(1)}] \\
+    P''_X(s) &= \frac{d^2}{ds^2} \sum_{k=0}^{\infty} p_k s^k = \sum_{k=2}^{\infty} k(k-1) p_k s^{k-2} \\
+    \implies P''_X(1) &= \sum_{k=2}^{\infty} k(k-1) p_k = \E[X(X-1)] = \E[X^{(2)}] \\
+    &\vdots \\
+    P_X^{(k)}(1) &= \sum_{j=k}^{\infty} j(j-1)\dots(j-k+1) p_j = \E[X(X-1)\dots(X-k+1)] = \E[X^{(k)}]
+\end{align*}
+So, we have the important result:
+\begin{equation}
+    \E[X(X-1)\dots(X-k+1)] = P_X^{(k)}(1)
+\end{equation}
+\end{property}
+
+\begin{remark}[Why Factorial Moments?]
+Factorial moments are useful primarily because:
+\begin{itemize}
+    \item They are calculated directly from PGF derivatives at $s=1$.
+    \item They provide a convenient way to find the variance. Since $E[X^{(2)}] = E[X(X-1)] = E[X^2] - E[X]$, we have $E[X^2] = E[X^{(2)}] + E[X]$. The variance is then:
+        \begin{align}
+        \Var(X) &= E[X^2] - (E[X])^2 \nonumber \\
+                &= (E[X^{(2)}] + E[X]) - (E[X])^2 \nonumber \\
+                &= P''_X(1) + P'_X(1) - (P'_X(1))^2 \label{eq:var_from_pgf}
+        \end{align}
+        This allows calculating the variance using only the first two derivatives of the PGF at $s=1$.
+    \item For some distributions (like Poisson), factorial moments have simpler forms than raw moments ($E[X^k]$).
+\end{itemize}
+\end{remark}
+
+\begin{example}[Geometric Distribution PGF and Moments]
+Let $X$ be the number of Bernoulli trials until the first success, where the probability of success on each trial is $p$. $X$ takes values $k=1, 2, 3, \dots$ with PMF $\Pr(X=k) = (1-p)^{k-1}p$.
+\emph{(Note: This is different from the Geometric starting at $k=0$ which counts failures before success).}
+
+The PGF is calculated as:
+\begin{align*}
+P_X(s) &= \E[s^X] = \sum_{k=1}^{\infty} s^k \Pr(X=k) = \sum_{k=1}^{\infty} s^k (1-p)^{k-1} p \\
+       &= p s \sum_{k=1}^{\infty} s^{k-1} (1-p)^{k-1} \quad \text{(Let } j=k-1 \text{)} \\
+       &= p s \sum_{j=0}^{\infty} [s(1-p)]^j \\
+       &= ps \left( \frac{1}{1 - s(1-p)} \right) \quad \text{(Geometric series, requires } |s(1-p)| < 1) \\
+       &= \frac{ps}{1 - s(1-p)}, \quad \text{for } |s| < 1/(1-p)
+\end{align*}
+
+Now, let's use this PGF to find the mean and variance.
+\textbf{Mean:} We need $P'_X(1)$.
+$$ P'_X(s) = \frac{p}{(1-s(1-p))^2} \quad \text{(Calculated earlier)} $$
+$$ E[X] = P'_X(1) = \frac{p}{(1-(1-p))^2} = \frac{p}{p^2} = \boxed{\frac{1}{p}} $$
+\textbf{Variance:} We need $P''_X(1)$ and use Eq. \eqref{eq:var_from_pgf}.
+$$ P''_X(s) = \frac{2p(1-p)}{(1-s(1-p))^3} \quad \text{(Calculated earlier)} $$
+$$ E[X(X-1)] = P''_X(1) = \frac{2p(1-p)}{(1-(1-p))^3} = \frac{2p(1-p)}{p^3} = \frac{2(1-p)}{p^2} $$
+Using the variance formula:
+$$ \Var(X) = P''_X(1) + P'_X(1) - (P'_X(1))^2 = \frac{2(1-p)}{p^2} + \frac{1}{p} - \left(\frac{1}{p}\right)^2 = \frac{2-2p + p - 1}{p^2} = \boxed{\frac{1-p}{p^2}} $$
+These match the known mean and variance for the Geometric($p$) distribution starting from $k=1$.
+\end{example}
+
+\begin{property}[Sums of Independent Random Variables]
+If $X_1, X_2, \dots, X_n$ are independent random variables (taking non-negative integer values) with PGFs $P_1(s), \dots, P_n(s)$, and $Y = X_1 + \dots + X_n$, then the PGF of $Y$ is the product of the individual PGFs:
+\begin{equation}
+    P_Y(s) = \E[s^Y] = \E[s^{X_1+\dots+X_n}] = \E[s^{X_1} \dots s^{X_n}] = \E[s^{X_1}]\dots\E[s^{X_n}] = P_1(s) \dots P_n(s)
+\end{equation}
+The crucial step $\E[s^{X_1} \dots s^{X_n}] = \E[s^{X_1}]\dots\E[s^{X_n}]$ relies on the independence of the $X_i$.
+
+\emph{Example:} If $X_1, \dots, X_r$ are i.i.d. Geometric($p$) (as defined above, $X_i \ge 1$), then $Y = X_1 + \dots + X_r$ is the number of trials for $r$ successes (Negative Binomial). Its PGF is $P_Y(s) = [P_X(s)]^r = \left( \frac{ps}{1-(1-p)s} \right)^r$.
+\end{property}
+
+\section{Moment Generating Functions (MGFs)}
+
+\subsection{Motivation and Definition}
+
+Can we generalize the idea of generating functions to continuous random variables, or discrete ones not restricted to non-negative integers? The MGF does this, using an exponential function instead of $s^X$. It's particularly suited for generating raw moments.
+
+\begin{definition}[Moment Generating Function (MGF)]
+Let $X$ be a random variable (discrete or continuous). The \textbf{Moment Generating Function (MGF)} of $X$ is defined as:
+\begin{equation}
+    M_X(t) = \E[e^{tX}]
+\end{equation}
+provided this expectation exists (is finite) for $t$ in some open interval $(-\delta, \delta)$ containing $0$. If the expectation does not exist in such an interval, we say the MGF does not exist.
+\end{definition}
+
+\subsection{Existence Condition - A Crucial Point}
+
+Unlike PGFs (which always converge for $|s|\le 1$) and CFs (which always exist), **MGFs are not guaranteed to exist**.
+The expectation $M_X(t) = \int_{-\infty}^{\infty} e^{tx} f(x) dx$ (for continuous $X$) or $\sum_k e^{tk} \Pr(X=k)$ (for discrete $X$) involves the term $e^{tx}$.
+If $t \neq 0$, this term grows exponentially as $|x| \to \infty$. For the expectation to be finite, the tails of the distribution ($f(x)$ or $\Pr(X=k)$ for large $|k|$) must decay sufficiently fast to counteract this exponential growth.
+
+\begin{example}[Non-existence]
+The Cauchy distribution, with PDF $f(x) = \frac{1}{\pi(1+x^2)}$, has "heavy tails" that decay like $1/x^2$. This is not fast enough to overcome the growth of $e^{tx}$, and its MGF does not exist for any $t \neq 0$.
+\end{example}
+
+\subsection{Key Properties and Uses}
+
+\begin{property}[Generating Raw Moments]
+If the MGF $M_X(t)$ exists in an interval around $t=0$, it generates the raw moments $E[X^k]$ via differentiation at $t=0$. Consider the Taylor expansion of $e^{tX}$:
+$$ e^{tX} = 1 + tX + \frac{(tX)^2}{2!} + \frac{(tX)^3}{3!} + \dots $$
+Taking expectations (assuming we can swap expectation and summation):
+$$ M_X(t) = \E[e^{tX}] = 1 + t\E[X] + \frac{t^2\E[X^2]}{2!} + \frac{t^3\E[X^3]}{3!} + \dots $$
+This is the Taylor series for $M_X(t)$ around $t=0$. By matching coefficients with the general Taylor formula $M_X(t) = \sum_{k=0}^\infty \frac{M_X^{(k)}(0)}{k!} t^k$, we find:
+\begin{equation}
+    \E[X^k] = M_X^{(k)}(0)
+\end{equation}
+where $M_X^{(k)}(0)$ is the k-th derivative of $M_X(t)$ evaluated at $t=0$.
+\end{property}
+
+\begin{property}[Sums of Independent Random Variables]
+Similar to PGFs, if $X_1, \dots, X_n$ are independent with MGFs $M_1(t), \dots, M_n(t)$, and $Y = X_1 + \dots + X_n$, then (provided all MGFs exist):
+\begin{equation}
+    M_Y(t) = M_1(t) \dots M_n(t)
+\end{equation}
+\end{property}
+
+\begin{remark}
+When the MGF exists, it uniquely determines the distribution (if two RVs have the same MGF in an interval around 0, they have the same distribution). However, this uniqueness property is less general than that of the CF, because the MGF might not exist.
+\end{remark}
+
+\section{Characteristic Functions (CFs)}
+
+\subsection{Motivation and Definition}
+
+The MGF's potential non-existence is a significant limitation, especially for theoretical work. The Characteristic Function overcomes this by introducing a complex exponential. It is the most general and theoretically important of the three generating functions.
+
+\begin{definition}[Characteristic Function (CF)]
+Let $X$ be any random variable (discrete or continuous). The \textbf{Characteristic Function (CF)} of $X$ is defined as:
+\begin{equation}
+    \phi_X(t) = \E[e^{itX}] = \E[\cos(tX) + i \sin(tX)]
+\end{equation}
+where $t$ is a real variable and $i = \sqrt{-1}$.
+\end{definition}
+
+\subsection{Existence - The Key Advantage}
+
+\begin{theorem}[Existence of CF]
+The characteristic function $\phi_X(t)$ exists and is finite for \textbf{all} real values of $t$ for \textbf{any} random variable $X$.
+\end{theorem}
+\begin{proof}[Sketch]
+We need to show the expectation $E[e^{itX}]$ converges. Consider the magnitude of the term inside the expectation:
+$$ |e^{itX}| = |\cos(tX) + i \sin(tX)| = \sqrt{\cos^2(tX) + \sin^2(tX)} = \sqrt{1} = 1 $$
+The magnitude is always 1, regardless of $X$ or $t$. Therefore, when taking the expectation (integrating or summing against the PDF/PMF $f(x)$), we have:
+$$ |\phi_X(t)| = |\E[e^{itX}]| \le \E[|e^{itX}|] = \E[1] = 1 $$
+For the integral definition (continuous case): $\int_{-\infty}^{\infty} |e^{itx} f(x)| dx = \int_{-\infty}^{\infty} |e^{itx}| f(x) dx = \int_{-\infty}^{\infty} 1 \cdot f(x) dx = 1$. Since the integral of the absolute value converges, the integral itself converges. A similar argument holds for the discrete case.
+\end{proof}
+
+This universal existence contrasts sharply with the MGF and makes the CF suitable for all distributions, including heavy-tailed ones.
+
+\subsection{Key Properties and Uses}
+
+\begin{property}[Relation to Cosine and Sine Averages]
+From Euler's formula, we can write:
+\begin{equation}
+    \phi_X(t) = \E[\cos(tX)] + i \E[\sin(tX)]
+\end{equation}
+So, the real part of the CF is the average value of $\cos(tX)$, and the imaginary part is the average value of $\sin(tX)$.
+\begin{itemize}
+    \item $\E[\cos(tX)]$ reflects the "even" or symmetric characteristics of the distribution relative to frequency $t$.
+    \item $\E[\sin(tX)]$ reflects the "odd" or asymmetric characteristics of the distribution relative to frequency $t$.
+    \item If the distribution of $X$ is symmetric about 0 (i.e., $X$ and $-X$ have the same distribution), then $\E[\sin(tX)] = 0$, and the CF $\phi_X(t)$ is purely real. This is because $\sin(t(-x)) = -\sin(tx)$, causing cancellation in the expectation for symmetric distributions.
+\end{itemize}
+The parameter $t$ acts as a frequency, determining how rapidly the angle $tX$ changes relative to $X$. The term $tX$ itself is a random angle (or phase), and the CF captures the average behavior of $e^{itX}$ over the distribution of these random angles.
+\end{property}
+
+\begin{property}[Generating Raw Moments]
+If $E[|X|^k] < \infty$, then the k-th derivative of $\phi_X(t)$ exists, and the raw moments can be found using:
+\begin{equation}
+    \E[X^k] = \frac{\phi_X^{(k)}(0)}{i^k}
+\end{equation}
+This comes from differentiating $\phi_X(t) = E[e^{itX}]$ with respect to $t$ and evaluating at $t=0$. For example, $\phi'_X(t) = E[iX e^{itX}] \implies \phi'_X(0) = E[iX] = iE[X]$, so $E[X] = \phi'_X(0)/i$.
+\end{property}
+
+\begin{property}[Sums of Independent Random Variables]
+As with PGFs and MGFs, if $X_1, \dots, X_n$ are independent with CFs $\phi_1(t), \dots, \phi_n(t)$, and $Y = X_1 + \dots + X_n$, then:
+\begin{equation}
+    \phi_Y(t) = \phi_1(t) \dots \phi_n(t)
+\end{equation}
+\end{property}
+
+\begin{property}[Uniqueness and Continuity Theorems]
+\begin{itemize}
+    \item \textbf{Uniqueness Theorem:} The characteristic function $\phi_X(t)$ uniquely determines the probability distribution of $X$. If $\phi_X(t) = \phi_Y(t)$ for all $t$, then $X$ and $Y$ have the same distribution. (There are inversion formulas to recover the CDF/PDF/PMF from the CF).
+    \item \textbf{Lévy's Continuity Theorem:} Convergence of a sequence of distribution functions is equivalent to the pointwise convergence of the corresponding sequence of characteristic functions. This is the cornerstone for proving limit theorems using CFs.
+\end{itemize}
+These properties make the CF the primary tool for rigorous theoretical work, especially concerning convergence of random variables (like the Central Limit Theorem).
+\end{property}
+
+\section{When to Use Which Function?}
+
+The choice depends on the random variable and the goal:
+
+\begin{enumerate}
+    \item \textbf{Is the RV discrete taking values $0, 1, 2, \dots$?}
+        \begin{itemize}
+            \item Use the \textbf{PGF ($E[s^X]$)} if you need probabilities ($P(X=k)$) or factorial moments easily, or if dealing with sums/branching processes involving such variables.
+        \end{itemize}
+    \item \textbf{Is the RV discrete or continuous (and not covered by PGF)?}
+        \begin{itemize}
+            \item Does the \textbf{MGF ($E[e^{tX}]$)} exist (i.e., tails are sufficiently light)?
+                \begin{itemize}
+                    \item \textbf{Yes:} The MGF is often convenient for finding raw moments ($E[X^k]$) and dealing with sums of independent variables, potentially involving simpler calculations than the CF.
+                    \item \textbf{No / Unsure:} Use the CF.
+                \end{itemize}
+            \item Do you need guaranteed existence, uniqueness, or are you doing theoretical work (limit theorems, proofs)?
+                \begin{itemize}
+                    \item \textbf{Yes:} Use the \textbf{CF ($E[e^{itX}]$)}. It always exists, uniquely determines the distribution, and is the standard tool for proving convergence theorems.
+                \end{itemize}
+        \end{itemize}
+\end{enumerate}
+
+In short: PGF for non-negative integers (probabilities/factorial moments), MGF for convenience with moments/sums if it exists, CF for universal applicability and theoretical rigor.
+
+\section{Conclusion}
+
+Generating functions (PGF, MGF, CF) are indispensable tools in probability theory. They provide alternative ways to represent distributions, often simplifying the calculation of moments and the analysis of sums of independent random variables. While the PGF is specific to non-negative integer variables and the MGF requires an existence condition, the Characteristic Function offers a universally applicable and theoretically robust framework, underpinning many fundamental results in the field. Understanding the properties and appropriate uses of each type of generating function is key to leveraging their power effectively.
+
+\end{document}

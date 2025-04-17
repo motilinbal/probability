@@ -1,0 +1,468 @@
+% **********************************************************
+%  Lecture Notes: Change of Variables, Jacobians & Gram Determinants
+%  Enhanced for Undergraduate Understanding
+% **********************************************************
+\documentclass[12pt]{article}
+
+% --- Essential Packages ---
+\usepackage{amsmath,amssymb,amsthm,amsfonts} % Core math symbols and environments
+\usepackage[T1]{fontenc}                     % Standard font encoding
+\usepackage{lmodern}                         % Clear, modern font
+\usepackage{mathtools}                       % Enhancements for amsmath
+\usepackage[margin=1in]{geometry}            % Sensible margins
+\usepackage{graphicx}                        % For including images (though none used here)
+\usepackage{enumitem}                        % Customizable lists
+\usepackage[dvipsnames]{xcolor}              % Access to more colors for boxes
+\usepackage{tcolorbox}                       % For creating highlighted boxes
+\usepackage{setspace}                        % Control line spacing (e.g., \onehalfspacing)
+\usepackage{titlesec}                        % Customize section headers
+\usepackage{fancyhdr}                        % Custom headers and footers
+\usepackage{hyperref}                        % Clickable links (TOC, references)
+
+% --- Hyperref Setup ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=MidnightBlue,
+    citecolor=ForestGreen,
+    urlcolor=RoyalBlue,
+    pdftitle={Lecture Notes: Change of Variables},
+    pdfauthor={Instruction Team},
+    pdfsubject={Multivariable Calculus}
+}
+
+% --- Section Formatting ---
+\titleformat{\section}[block]{\Large\bfseries\sffamily\color{MidnightBlue}}{\thesection.}{1em}{}
+\titleformat{\subsection}[block]{\large\bfseries\sffamily\color{MidnightBlue}}{\thesubsection.}{1em}{}
+\titlespacing*{\section}{0pt}{1.8em}{0.8em} % Adjust spacing around section titles
+\titlespacing*{\subsection}{0pt}{1.5em}{0.6em} % Adjust spacing around subsection titles
+
+% --- Theorem Environments ---
+\theoremstyle{definition} % Use definition style for definitions, examples
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{plain} % Use plain style for theorems, lemmas, corollaries
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+
+\theoremstyle{remark} % Use remark style for remarks, notes
+\newtheorem{remark}[definition]{Remark}
+
+% --- Custom Pedagogical Environments ---
+% Example environment (retains original numbering and style)
+\newtcolorbox[auto counter, number within=section]{example}[2][]{
+    colback=blue!5!white,
+    colframe=MidnightBlue!75!black,
+    fonttitle=\bfseries,
+    title=Example~\thetcbcounter: #2, % Consistent numbering
+    #1 % Allows optional arguments
+}
+
+% Non-Example environment (useful for highlighting pitfalls)
+\newtcolorbox[auto counter, number within=section]{nonexample}[2][]{
+    colback=red!5!white,
+    colframe=BrickRed!75!black,
+    fonttitle=\bfseries,
+    title=Non-Example~\thetcbcounter: #2,
+    #1
+}
+
+% Administrative note environment
+\newtcolorbox{adminnote}[1][]{
+    colback=gray!10!white,
+    colframe=black!60!gray,
+    fonttitle=\bfseries\sffamily,
+    title=Administrative Note,
+    #1
+}
+
+% --- Line Spacing ---
+\onehalfspacing % Slightly more space between lines for readability
+
+% --- Header/Footer ---
+\pagestyle{fancy}
+\fancyhf{} % Clear default headers/footers
+\lhead{\sffamily Lecture Notes: Change of Variables}
+\rhead{\sffamily Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt} % Add a thin line under the header
+
+% --- Document Start ---
+\begin{document}
+
+% --- Title Page ---
+\begin{titlepage}
+    \centering
+    \vspace*{2cm} % Add some space at the top
+    {\Huge\bfseries\sffamily\color{MidnightBlue} From One to k Dimensions}\\[1em]
+    {\Large\itshape A Gentle Yet Rigorous Tour}\\[1.5em]
+    {\Huge\bfseries\sffamily\color{MidnightBlue} Through the Jacobian, Gram Determinant, and Change of Variables}\\[3em]
+    \vfill % Push content down
+    {\Large Compiled by the Instruction Team}\\
+    (\emph{with pedagogical commentary})\\[3em]
+    {\large Last updated: \today}
+    \vfill % Push to bottom
+\end{titlepage}
+
+% --- Table of Contents ---
+\tableofcontents
+\thispagestyle{empty} % No header/footer on TOC page
+\newpage
+\setcounter{page}{1} % Reset page number for content start
+
+% --- Main Content ---
+
+\section*{Motivation: Why Does the Jacobian Wear So Many Hats?}
+
+Imagine you have a piece of mathematical "stuff" – maybe a simple interval on the number line, a curved surface floating in space, or even a whole region in higher dimensions. Now, suppose you transform this stuff: you stretch it, squeeze it, rotate it, or bend it using a function (a map). A fundamental question arises: how does the "size" (length, area, volume, or its higher-dimensional equivalent) change locally under this transformation?
+
+The answer, remarkably, is captured by a single concept often hiding behind the name "Jacobian." You've likely encountered its different appearances:
+\begin{itemize}[leftmargin=2.5em, itemsep=0.5em]
+    \item In single-variable calculus, when changing variables in an integral $\int f(g(x)) g'(x) dx$, the factor $|g'(x)|$ pops up. It tells us how much the function $g$ stretches or shrinks tiny intervals around $x$.
+    \item When calculating the surface area of a parameterized surface $\mathbf{r}(u,v)$ in $\mathbb{R}^3$, the somewhat intimidating term $\|\partial_u \mathbf{r} \times \partial_v \mathbf{r}\|$ appears. This measures how a tiny rectangle in the $uv$-plane gets stretched into a parallelogram on the surface.
+    \item For coordinate transformations in $\mathbb{R}^k$, say from $(u_1, \dots, u_k)$ to $(y_1, \dots, y_k)$, the absolute value of the determinant of the Jacobian matrix, $|\det J|$, governs how $k$-dimensional volumes scale.
+\end{itemize}
+Are these just unrelated formulas we need to memorize for different situations? Or is there a deeper connection? The beautiful truth, and the central theme of these notes, is that they are all special cases of a single, more general idea. We will uncover this unifying principle, showing how one master formula elegantly encompasses all these familiar faces. Our journey will take us through the concept of the Gram determinant, revealing it as the heart of the matter.
+
+\section{The Master Formula: Change of Variables in k Dimensions}
+
+Let's state the main result upfront. This theorem provides the universal tool for understanding how integrals transform when we change coordinates, regardless of whether we're mapping a curve into space, a plane into a higher dimension, or just performing a standard coordinate change.
+
+\begin{theorem}[Change of Variables for $k$-Dimensional Integrals]\label{thm:COV}
+Let $U$ be an open subset of $\mathbb{R}^k$, and let $g: U \to \mathbb{R}^n$ (where $n \ge k$) be a continuously differentiable map. Assume the Jacobian matrix of $g$, denoted $J_g(\mathbf{u})$, has full rank $k$ for all $\mathbf{u} \in U$. (This ensures $g$ doesn't locally collapse dimensions). Let $f: g(U) \to \mathbb{R}$ be an integrable function defined on the image of $U$ under $g$.
+
+Then, for any measurable subset $A \subseteq U$, the integral of $f$ over the transformed set $g(A)$ can be computed by an integral over the original set $A$ as follows:
+\[
+    \int_{g(A)} f(\mathbf{y})\,d V_k(\mathbf{y}) = \int_{A} f\bigl(g(\mathbf{u})\bigr) \underbrace{\sqrt{\det\bigl(J_g(\mathbf{u})^{\mathsf{T}} J_g(\mathbf{u})\bigr)}}_{\text{The Scaling Factor}}\,d V_k(\mathbf{u})
+\]
+Here, $d V_k$ represents the $k$-dimensional volume element (e.g., $du$ if $k=1$, $du\,dv$ if $k=2$, etc.).
+\end{theorem}
+
+\begin{remark}[The Scaling Factor Explained]
+The crucial term is $\sqrt{\det(J_g^{\mathsf{T}} J_g)}$. What does it represent?
+\begin{itemize}
+    \item $J_g(\mathbf{u})$ is the $n \times k$ matrix of partial derivatives of $g$ at $\mathbf{u}$. Its columns represent the tangent vectors to the image of the coordinate axes from $U$ within the target space $\mathbb{R}^n$.
+    \item The matrix $J_g^{\mathsf{T}} J_g$ is a $k \times k$ matrix called the \textbf{Gram matrix}. Its determinant, $\det(J_g^{\mathsf{T}} J_g)$, measures the square of the $k$-dimensional volume of the parallelepiped spanned by the column vectors of $J_g(\mathbf{u})$.
+    \item Taking the square root, $\sqrt{\det(J_g^{\mathsf{T}} J_g)}$, gives the actual $k$-dimensional volume scaling factor. It tells us how much a tiny $k$-dimensional cube near $\mathbf{u}$ in the domain $U$ is stretched or shrunk when mapped by $g$ into a small $k$-dimensional "patch" near $g(\mathbf{u})$ in $\mathbb{R}^n$.
+\end{itemize}
+This square root of the Gram determinant is the universal "Jacobian factor" we were looking for!
+\end{remark}
+
+\begin{remark}[Connection to Familiar Cases]
+As we'll demonstrate shortly:
+\begin{itemize}
+    \item When $k=n$ (mapping $\mathbb{R}^k$ to $\mathbb{R}^k$), $J_g$ is square, and $\sqrt{\det(J_g^{\mathsf{T}} J_g)} = \sqrt{(\det J_g)^2} = |\det J_g|$.
+    \item When $k=1$ (parameterizing a curve in $\mathbb{R}^n$), $g(u) = \mathbf{r}(u)$, $J_g = \mathbf{r}'(u)$ (a column vector), and $\sqrt{\det(J_g^{\mathsf{T}} J_g)} = \sqrt{\|\mathbf{r}'(u)\|^2} = \|\mathbf{r}'(u)\|$.
+    \item When $k=2$ and $n=3$ (parameterizing a surface $\mathbf{r}(u,v)$ in $\mathbb{R}^3$), we will see this factor becomes $\|\partial_u \mathbf{r} \times \partial_v \mathbf{r}\|$.
+\end{itemize}
+\end{remark}
+
+Let's see the 1-D case ($k=1, n=1$) in action with an example from probability.
+
+\begin{example}{Swapping Parameters in a Beta Distribution}
+\label{prob_beta_swap}
+Suppose a random variable $X$ follows a Beta distribution with parameters $\alpha > 0$ and $\beta > 0$, denoted $X \sim \mathrm{Beta}(\alpha,\beta)$. Its probability density function (PDF) is defined for $x \in (0, 1)$ as:
+\[
+    f_X(x) = \frac{x^{\alpha-1}(1-x)^{\beta-1}}{B(\alpha,\beta)}, \qquad \text{where } B(\alpha,\beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)} \text{ is the Beta function.}
+\]
+Now, consider a new random variable $Y = 1 - X$. What is the distribution of $Y$?
+
+We use the change of variables formula for PDFs, which is a direct application of Theorem~\ref{thm:COV} with $f$ being the density and the integral being implicitly 1 (total probability). Here, the transformation is $g(x) = 1-x$.
+\begin{enumerate}
+    \item The map is $g: (0,1) \to (0,1)$.
+    \item The Jacobian matrix is $J_g(x) = [g'(x)] = [-1]$ (a $1 \times 1$ matrix).
+    \item The Gram matrix is $J_g(x)^{\mathsf{T}} J_g(x) = [-1][-1] = [1]$.
+    \item The scaling factor is $\sqrt{\det([1])} = \sqrt{1} = 1$. Note that for $k=n=1$, this is $|g'(x)| = |-1| = 1$.
+    \item The inverse transformation is $x = g^{-1}(y) = 1-y$.
+\end{enumerate}
+The general formula for transforming densities is $f_Y(y) = f_X(g^{-1}(y)) \, |\det J_{g^{-1}}(y)|$, or equivalently $f_Y(y) = f_X(x) \, |dx/dy|$. A simpler way for 1D is often $f_Y(y) = f_X(x(y))\,|x'(y)|$. Or, as used in the original notes which applies Theorem \ref{thm:COV} directly considering the density as $f$ and the transformation $g$: $f_Y(y) = f_X(g^{-1}(y))\sqrt{\det(J_{g^{-1}}^{\mathsf{T}}J_{g^{-1}})}$. Let's stick to the formulation closest to the original notes: $f_Y(y) = f_X(x(y)) \cdot \sqrt{\det(J_g(x(y))^{\mathsf{T}} J_g(x(y)))} $.
+We need $f_X(x)$ evaluated at $x = 1-y$.
+\[
+    f_X(1-y) = \frac{(1-y)^{\alpha-1}(1-(1-y))^{\beta-1}}{B(\alpha,\beta)} = \frac{(1-y)^{\alpha-1}y^{\beta-1}}{B(\alpha,\beta)}.
+\]
+Applying the formula with the scaling factor (Jacobian determinant absolute value):
+\[
+    f_Y(y) = f_X(1-y) \cdot \underbrace{\sqrt{\det(J_g(1-y)^{\mathsf{T}} J_g(1-y))}}_{=1} = \frac{(1-y)^{\alpha-1}y^{\beta-1}}{B(\alpha,\beta)}.
+\]
+We know that the Beta function is symmetric: $B(\alpha,\beta) = B(\beta,\alpha)$. So we can write:
+\[
+    f_Y(y) = \frac{y^{\beta-1}(1-y)^{\alpha-1}}{B(\beta,\alpha)}, \qquad \text{for } 0 < y < 1.
+\]
+This is precisely the PDF of a $\mathrm{Beta}(\beta,\alpha)$ distribution.
+Therefore, if $X \sim \mathrm{Beta}(\alpha,\beta)$, then $Y = 1-X \sim \mathrm{Beta}(\beta,\alpha)$. \qedhere
+\end{example}
+
+
+\section{Unpacking the Master Formula: Familiar Geometries}
+
+Now, let's see how Theorem~\ref{thm:COV} effortlessly reproduces the scaling factors we know from specific geometric contexts.
+
+\subsection{Case 1: Curves in \texorpdfstring{$\mathbb{R}^n$}{R^n} (k=1) - Arc Length}
+
+Consider parameterizing a curve in $\mathbb{R}^n$ using a function $\mathbf{r}: [a, b] \to \mathbb{R}^n$, where $\mathbf{r}(t) = (x_1(t), \dots, x_n(t))$. Here, $k=1$ (the domain is 1D, the parameter $t$) and $n$ can be any dimension $\ge 1$. Our map is $g(t) = \mathbf{r}(t)$.
+
+The Jacobian $J_{\mathbf{r}}(t)$ is the $n \times 1$ matrix formed by the derivatives of the components:
+\[
+    J_{\mathbf{r}}(t) = \frac{d\mathbf{r}}{dt} = \begin{bmatrix} x_1'(t) \\ x_2'(t) \\ \vdots \\ x_n'(t) \end{bmatrix}.
+\]
+This is just the tangent vector to the curve!
+
+Now, let's compute the Gram matrix $J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}}$:
+\[
+    J_{\mathbf{r}}(t)^{\mathsf{T}} J_{\mathbf{r}}(t) =
+    \begin{bmatrix} x_1'(t) & x_2'(t) & \cdots & x_n'(t) \end{bmatrix}
+    \begin{bmatrix} x_1'(t) \\ x_2'(t) \\ \vdots \\ x_n'(t) \end{bmatrix}
+    = \sum_{i=1}^{n} (x_i'(t))^2 = \|\mathbf{r}'(t)\|^2.
+\]
+This is a $1 \times 1$ matrix (a scalar). Its determinant is just the value itself.
+
+The scaling factor from Theorem~\ref{thm:COV} is therefore:
+\[
+    \sqrt{\det(J_{\mathbf{r}}(t)^{\mathsf{T}} J_{\mathbf{r}}(t))} = \sqrt{\|\mathbf{r}'(t)\|^2} = \|\mathbf{r}'(t)\|.
+\]
+This is exactly the magnitude of the tangent vector, which we know represents the local stretching factor for arc length! The total arc length is $\int_a^b \|\mathbf{r}'(t)\| dt$, perfectly matching the formula derived from Theorem~\ref{thm:COV} when $f=1$.
+
+Let's revisit the examples from class:
+
+\textit{Original Example: Helix Segment}
+Consider the helix $\mathbf{r}(t) = (\cos t, \sin t, t)$ for $0 \leq t \leq 1$.
+The Jacobian (tangent vector) is:
+\[
+    J_{\mathbf{r}}(t) = \mathbf{r}'(t) = \begin{bmatrix} -\sin t \\ \cos t \\ 1 \end{bmatrix}.
+\]
+The Gram "matrix" (scalar) is:
+\[
+    J_{\mathbf{r}}(t)^{\mathsf{T}} J_{\mathbf{r}}(t) = (-\sin t)^2 + (\cos t)^2 + 1^2 = \sin^2 t + \cos^2 t + 1 = 1 + 1 = 2.
+\]
+The scaling factor is $\sqrt{\det([2])} = \sqrt{2}$. This means the helix stretches length uniformly by a factor of $\sqrt{2}$ compared to the parameter $t$. The total length of this segment is $\int_0^1 \sqrt{2} dt = \sqrt{2}$.
+
+\begin{example}{{Tiny Chord on a Parabola}}
+\label{parabola_chord}
+Let's analyze the planar curve $\mathbf{r}(t) = (t, t^2)$.
+The Jacobian (tangent vector) is $J_{\mathbf{r}}(t) = \mathbf{r}'(t) = (1, 2t)^{\mathsf{T}} = \begin{bsmallmatrix} 1 \\ 2t \end{bsmallmatrix}$.
+The Gram matrix is:
+\[ J_{\mathbf{r}}(t)^{\mathsf{T}} J_{\mathbf{r}}(t) = \begin{bmatrix} 1 & 2t \end{bmatrix} \begin{bmatrix} 1 \\ 2t \end{bmatrix} = 1^2 + (2t)^2 = 1 + 4t^2. \]
+The local length scaling factor is $\sqrt{\det([1+4t^2])} = \sqrt{1+4t^2}$.
+Consider a small increment $\Delta t$ in the parameter, centered at $t=0.6$. The corresponding small piece of the curve will have length approximately equal to the scaling factor at $t=0.6$ times $\Delta t$.
+At $t=0.6$, the scaling factor is $\sqrt{1 + 4(0.6)^2} = \sqrt{1 + 4(0.36)} = \sqrt{1 + 1.44} = \sqrt{2.44} \approx 1.562$.
+So, the length of the curve segment corresponding to $[0.6, 0.6+\Delta t]$ is approximately $1.562 \cdot \Delta t$. This matches the numerical observation from class: the curve stretches a small interval $\Delta t$ near $t=0.6$ by a factor of about 1.56.
+\end{example}
+
+\subsection{Case 2: Surfaces in \texorpdfstring{$\mathbb{R}^3$}{R^3} (k=2, n=3) - Surface Area}
+
+Consider a surface parameterized by $\mathbf{r}: U \subseteq \mathbb{R}^2 \to \mathbb{R}^3$, where $\mathbf{r}(u,v) = (x(u,v), y(u,v), z(u,v))$. Here, $k=2$ and $n=3$. The map is $g(u,v) = \mathbf{r}(u,v)$.
+
+The partial derivatives with respect to $u$ and $v$ are the tangent vectors to the coordinate curves on the surface:
+\[
+    \partial_u \mathbf{r} = \begin{pmatrix} \partial x/\partial u \\ \partial y/\partial u \\ \partial z/\partial u \end{pmatrix}, \quad
+    \partial_v \mathbf{r} = \begin{pmatrix} \partial x/\partial v \\ \partial y/\partial v \\ \partial z/\partial v \end{pmatrix}.
+\]
+The Jacobian matrix $J_{\mathbf{r}}(u,v)$ is the $3 \times 2$ matrix whose columns are these tangent vectors:
+\[
+    J_{\mathbf{r}}(u,v) = \begin{bmatrix} | & | \\ \partial_u \mathbf{r} & \partial_v \mathbf{r} \\ | & | \end{bmatrix} =
+    \begin{bmatrix}
+        \partial x/\partial u & \partial x/\partial v \\
+        \partial y/\partial u & \partial y/\partial v \\
+        \partial z/\partial u & \partial z/\partial v
+    \end{bmatrix}.
+\]
+Now, let's compute the $2 \times 2$ Gram matrix $J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}}$:
+\begin{align*} J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}} &=
+    \begin{bmatrix} - & (\partial_u \mathbf{r})^{\mathsf{T}} & - \\ - & (\partial_v \mathbf{r})^{\mathsf{T}} & - \end{bmatrix}
+    \begin{bmatrix} | & | \\ \partial_u \mathbf{r} & \partial_v \mathbf{r} \\ | & | \end{bmatrix} \\ &=
+    \begin{pmatrix}
+        (\partial_u \mathbf{r})^{\mathsf{T}} (\partial_u \mathbf{r}) & (\partial_u \mathbf{r})^{\mathsf{T}} (\partial_v \mathbf{r}) \\
+        (\partial_v \mathbf{r})^{\mathsf{T}} (\partial_u \mathbf{r}) & (\partial_v \mathbf{r})^{\mathsf{T}} (\partial_v \mathbf{r})
+    \end{pmatrix} \\ &=
+    \begin{pmatrix}
+        \partial_u \mathbf{r} \cdot \partial_u \mathbf{r} & \partial_u \mathbf{r} \cdot \partial_v \mathbf{r} \\
+        \partial_v \mathbf{r} \cdot \partial_u \mathbf{r} & \partial_v \mathbf{r} \cdot \partial_v \mathbf{r}
+    \end{pmatrix} =
+    \begin{pmatrix}
+        \|\partial_u \mathbf{r}\|^2 & \partial_u \mathbf{r} \cdot \partial_v \mathbf{r} \\
+        \partial_u \mathbf{r} \cdot \partial_v \mathbf{r} & \|\partial_v \mathbf{r}\|^2
+    \end{pmatrix}.
+\end{align*}
+The determinant of this Gram matrix is:
+\[
+    \det(J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}}) = \|\partial_u \mathbf{r}\|^2 \|\partial_v \mathbf{r}\|^2 - (\partial_u \mathbf{r} \cdot \partial_v \mathbf{r})^2.
+\]
+Does this look familiar? Recall \textbf{Lagrange's Identity} for vectors $\mathbf{a}, \mathbf{b}$ in $\mathbb{R}^3$:
+\[
+    \|\mathbf{a} \times \mathbf{b}\|^2 = \|\mathbf{a}\|^2 \|\mathbf{b}\|^2 - (\mathbf{a} \cdot \mathbf{b})^2.
+\]
+Applying this with $\mathbf{a} = \partial_u \mathbf{r}$ and $\mathbf{b} = \partial_v \mathbf{r}$, we get:
+\[
+    \det(J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}}) = \|\partial_u \mathbf{r} \times \partial_v \mathbf{r}\|^2.
+\]
+The scaling factor from Theorem~\ref{thm:COV} is therefore:
+\[
+    \sqrt{\det(J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}})} = \sqrt{\|\partial_u \mathbf{r} \times \partial_v \mathbf{r}\|^2} = \|\partial_u \mathbf{r} \times \partial_v \mathbf{r}\|.
+\]
+This is exactly the magnitude of the cross product of the tangent vectors, which geometrically represents the area of the parallelogram spanned by $\partial_u \mathbf{r}$ and $\partial_v \mathbf{r}$ – the local area scaling factor for surface area integrals! The total surface area is $\iint_U \|\partial_u \mathbf{r} \times \partial_v \mathbf{r}\| \,du\,dv$.
+
+Let's verify with the class example:
+
+\textit{Original Example: Hyperbolic Paraboloid Surface}
+Consider the surface $\mathbf{r}(u,v) = (u, v, u^2-v^2)$ for $-1 \leq u,v \leq 1$.
+The partial derivatives are:
+\[
+    \partial_u \mathbf{r} = (1, 0, 2u)^{\mathsf{T}} = \begin{pmatrix} 1 \\ 0 \\ 2u \end{pmatrix}, \quad
+    \partial_v \mathbf{r} = (0, 1, -2v)^{\mathsf{T}} = \begin{pmatrix} 0 \\ 1 \\ -2v \end{pmatrix}.
+\]
+The Jacobian matrix is:
+\[
+    J_{\mathbf{r}}(u,v) = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 2u & -2v \end{bmatrix} \quad (\text{a } 3 \times 2 \text{ matrix}).
+\]
+Let's compute the Gram matrix $J^{\mathsf{T}}J$:
+\begin{align*} J^{\mathsf{T}}J &= \begin{bmatrix} 1 & 0 & 2u \\ 0 & 1 & -2v \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 2u & -2v \end{bmatrix} \\ &= \begin{pmatrix} (1)(1) + (0)(0) + (2u)(2u) & (1)(0) + (0)(1) + (2u)(-2v) \\ (0)(1) + (1)(0) + (-2v)(2u) & (0)(0) + (1)(1) + (-2v)(-2v) \end{pmatrix} \\ &= \begin{pmatrix} 1+4u^2 & -4uv \\ -4uv & 1+4v^2 \end{pmatrix}. \end{align*}
+The determinant of the Gram matrix is:
+\[
+    \det(J^{\mathsf{T}}J) = (1+4u^2)(1+4v^2) - (-4uv)(-4uv) = 1 + 4u^2 + 4v^2 + 16u^2v^2 - 16u^2v^2 = 1+4u^2+4v^2.
+\]
+The area scaling factor is $\sqrt{\det(J^{\mathsf{T}}J)} = \sqrt{1+4u^2+4v^2}$.
+
+Alternatively, let's compute the cross product:
+\[
+    \partial_u \mathbf{r} \times \partial_v \mathbf{r} =
+    \begin{vmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ 1 & 0 & 2u \\ 0 & 1 & -2v \end{vmatrix}
+    = \mathbf{i}(0 - 2u) - \mathbf{j}(-2v - 0) + \mathbf{k}(1 - 0) = (-2u, 2v, 1).
+\]
+Its magnitude is:
+\[
+    \|\partial_u \mathbf{r} \times \partial_v \mathbf{r}\| = \sqrt{(-2u)^2 + (2v)^2 + 1^2} = \sqrt{4u^2+4v^2+1}.
+\]
+This confirms that $\sqrt{\det(J^{\mathsf{T}}J)} = \|\partial_u \mathbf{r} \times \partial_v \mathbf{r}\|$.
+
+At the specific point $(u,v) = (0.5, 0.5)$, the scaling factor is $\sqrt{1 + 4(0.5)^2 + 4(0.5)^2} = \sqrt{1 + 4(0.25) + 4(0.25)} = \sqrt{1+1+1} = \sqrt{3} \approx 1.732$. This confirms the value visualized in class: a small square near $(0.5, 0.5)$ in the $uv$-plane maps to a small parallelogram on the surface with approximately $\sqrt{3}$ times the area.
+
+\subsection{Case 3: Maps from \texorpdfstring{$\mathbb{R}^k$}{R^k} to \texorpdfstring{$\mathbb{R}^k$}{R^k} (k=n) - Standard Jacobian Determinant}
+
+Now consider a transformation $g: U \subseteq \mathbb{R}^k \to V \subseteq \mathbb{R}^k$. Here, the dimension of the domain and codomain are the same ($n=k$). This covers standard coordinate changes like polar, cylindrical, or spherical coordinates, as well as linear transformations.
+
+The Jacobian matrix $J_g(\mathbf{u})$ is now a square $k \times k$ matrix.
+The Gram matrix is $J_g^{\mathsf{T}} J_g$.
+The scaling factor from Theorem~\ref{thm:COV} is $\sqrt{\det(J_g^{\mathsf{T}} J_g)}$.
+
+Using the property that $\det(A^{\mathsf{T}}) = \det(A)$ and $\det(AB) = \det(A)\det(B)$ for square matrices, we have:
+\[
+    \det(J_g^{\mathsf{T}} J_g) = \det(J_g^{\mathsf{T}}) \det(J_g) = \det(J_g) \det(J_g) = (\det J_g)^2.
+\]
+Therefore, the scaling factor becomes:
+\[
+    \sqrt{\det(J_g^{\mathsf{T}} J_g)} = \sqrt{(\det J_g)^2} = |\det J_g|.
+\]
+This is precisely the absolute value of the standard Jacobian determinant used in the change of variables formula for multiple integrals!
+
+Let's look at the linear map example:
+
+\textit{Original Example: A 2x2 Linear Map}
+Consider the linear transformation $g: \mathbb{R}^2 \to \mathbb{R}^2$ defined by $g(x,y) = (2x+y, x+3y)$. This can be written in matrix form as $g(\mathbf{x}) = A \mathbf{x}$, where $\mathbf{x} = \begin{psmallmatrix} x \\ y \end{psmallmatrix}$ and $A = \begin{pmatrix} 2 & 1 \\ 1 & 3 \end{pmatrix}$.
+
+The Jacobian matrix of this linear map is simply the matrix $A$ itself (since the partial derivatives are the constant entries of $A$):
+\[
+    J_g(x,y) = \begin{pmatrix} \partial(2x+y)/\partial x & \partial(2x+y)/\partial y \\ \partial(x+3y)/\partial x & \partial(x+3y)/\partial y \end{pmatrix} = \begin{pmatrix} 2 & 1 \\ 1 & 3 \end{pmatrix} = A.
+\]
+Since $k=n=2$, we are in the square case. Theorem~\ref{thm:COV} tells us the area scaling factor is $|\det J_g| = |\det A|$.
+\[
+    \det A = (2)(3) - (1)(1) = 6 - 1 = 5.
+\]
+The scaling factor is $|5| = 5$.
+
+This means the linear transformation $g$ multiplies all areas by a factor of 5. As sketched in class, the unit square with vertices $(0,0), (1,0), (0,1), (1,1)$ gets mapped to the parallelogram with vertices $g(0,0)=(0,0)$, $g(1,0)=(2,1)$, $g(0,1)=(1,3)$, and $g(1,1)=(3,4)$. The area of this parallelogram is indeed 5.
+
+Alternatively, using the Gram determinant:
+\[ J_g^{\mathsf{T}} J_g = A^{\mathsf{T}} A = \begin{pmatrix} 2 & 1 \\ 1 & 3 \end{pmatrix} \begin{pmatrix} 2 & 1 \\ 1 & 3 \end{pmatrix} = \begin{pmatrix} 5 & 5 \\ 5 & 10 \end{pmatrix}. \]
+\[ \det(J_g^{\mathsf{T}} J_g) = (5)(10) - (5)(5) = 50 - 25 = 25. \]
+The scaling factor is $\sqrt{\det(J_g^{\mathsf{T}} J_g)} = \sqrt{25} = 5$. Both methods yield the same result, confirming the general formula encompasses the standard Jacobian determinant.
+
+\section{Synthesis: One Formula, Many Familiar Faces}
+
+We have seen that the seemingly different scaling factors used in various change-of-variables contexts all emerge naturally from the single master formula (Theorem~\ref{thm:COV}) involving the Gram determinant. Let's summarize the connections:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5} % More vertical space in table rows
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Scenario} & \textbf{Map} $g: \mathbb{R}^k \to \mathbb{R}^n$ & \textbf{Jacobian} $J_g$ & \textbf{Scaling Factor} $\sqrt{\det(J_g^{\mathsf{T}}J_g)}$ & \textbf{Familiar Form} \\ \hline\hline
+1D Curve & $t \mapsto \mathbf{r}(t)$ ($k=1$) & $n \times 1$ (vector $\mathbf{r}'(t)$) & $\sqrt{\|\mathbf{r}'(t)\|^2}$ & Arc length element $\|\mathbf{r}'(t)\|$ \\ \hline
+Surface in $\mathbb{R}^3$ & $(u,v) \mapsto \mathbf{r}(u,v)$ ($k=2, n=3$) & $3 \times 2$ (cols $\partial_u\mathbf{r}, \partial_v\mathbf{r}$) & $\sqrt{\|\partial_u\mathbf{r} \times \partial_v\mathbf{r}\|^2}$ & Surface area element $\|\partial_u\mathbf{r} \times \partial_v\mathbf{r}\|$ \\ \hline
+$k \to k$ Map & $\mathbf{u} \mapsto g(\mathbf{u})$ ($k=n$) & $k \times k$ (square matrix $J_g$) & $\sqrt{(\det J_g)^2}$ & Standard Jacobian $|\det J_g|$ \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1} % Restore default spacing
+\end{center}
+
+The core insight is that the Gram determinant $\det(J_g^{\mathsf{T}} J_g)$ provides a universal measure of the squared local $k$-dimensional volume scaling induced by the map $g$. Its square root is the factor needed in the change of variables formula, regardless of the dimensions $k$ and $n$.
+
+\section{Exercises for Mastery}
+
+To solidify your understanding, try applying these concepts to the following problems.
+
+\begin{enumerate}[label=\arabic*., itemsep=0.5em, leftmargin=*]
+    \item \textbf{Probability Density Transformation:} Let $X$ be a random variable uniformly distributed on the interval $(0,1)$, meaning its PDF is $f_X(x) = 1$ for $0 < x < 1$. Find the PDF of the new random variable $Y = \sqrt{X}$.
+        \begin{itemize}
+            \item Identify the transformation $g(x) = \sqrt{x}$. What are its domain and range relevant to $X$ and $Y$?
+            \item Find the Jacobian $J_g(x)$.
+            \item Compute the scaling factor $\sqrt{\det(J_g(x)^{\mathsf{T}} J_g(x))}$. How does this relate to $|g'(x)|$?
+            \item Use the change of variables formula (Theorem~\ref{thm:COV}, adapted for PDFs as in Example~\ref{prob_beta_swap}) to find $f_Y(y)$. Verify that the result $f_Y(y) = 2y$ for $0 < y < 1$ is a valid PDF.
+        \end{itemize}
+
+    \item \textbf{Surface Area Calculation:} Consider the paraboloid defined by the graph $z = x^2 + y^2$ above the unit disk $D = \{(x,y) \in \mathbb{R}^2 : x^2 + y^2 \le 1\}$. We want to compute its surface area.
+        \begin{itemize}
+            \item Parameterize the surface $\mathbf{r}(x,y) = (x, y, x^2+y^2)$ over the domain $D$. Here $(u,v)$ are just $(x,y)$, so $k=2, n=3$.
+            \item Compute the Jacobian $J_{\mathbf{r}}(x,y)$.
+            \item Calculate the Gram matrix $J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}}$ and its determinant.
+            \item Find the area scaling factor $\sqrt{\det(J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}})}$.
+            \item Set up and evaluate the integral $\iint_D \sqrt{\det(J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}})} \,dx\,dy$ (Hint: Polar coordinates might be helpful for the integral).
+        \end{itemize}
+
+    \item \textbf{General Graph Surface Area:} Generalize the previous exercise. Let $S$ be the surface defined by the graph of $z = f(x,y)$ over a domain $D$ in the $xy$-plane, where $f$ is continuously differentiable.
+        \begin{itemize}
+            \item Use the parameterization $\mathbf{r}(x,y) = (x, y, f(x,y))$.
+            \item Show that the Jacobian is $J_{\mathbf{r}} = \begin{bsmallmatrix} 1 & 0 \\ 0 & 1 \\ f_x & f_y \end{bsmallmatrix}$, where $f_x = \partial f/\partial x$ and $f_y = \partial f/\partial y$.
+            \item Compute the Gram determinant $\det(J_{\mathbf{r}}^{\mathsf{T}} J_{\mathbf{r}})$.
+            \item Show that the area scaling factor simplifies to $\sqrt{1 + f_x^2 + f_y^2}$.
+            \item Does this match the standard formula for the surface area of a graph $z=f(x,y)$? This confirms that the Gram determinant approach recovers another familiar formula.
+        \end{itemize}
+
+    \item \textbf{Linear Algebra Connection:} Let $A$ be an $n \times k$ matrix with $n \ge k$ and assume $A$ has rank $k$ (its columns are linearly independent). The columns of $A$, say $\mathbf{v}_1, \dots, \mathbf{v}_k$, span a $k$-dimensional parallelepiped in $\mathbb{R}^n$. Show that the $k$-dimensional volume of this parallelepiped is precisely $\sqrt{\det(A^{\mathsf{T}}A)}$. (Hint: Think about how the matrix $A$ relates to a linear map from $\mathbb{R}^k$ to $\mathbb{R}^n$ mapping the standard basis vectors $\mathbf{e}_1, \dots, \mathbf{e}_k$ to $\mathbf{v}_1, \dots, \mathbf{v}_k$. What is the Jacobian of this map? How does Theorem~\ref{thm:COV} apply if we consider the volume of the unit cube in $\mathbb{R}^k$?)
+\end{enumerate}
+
+\appendix
+\section{Appendix: Revisiting the Parabola Arc Length from Lecture}
+
+For completeness, let's quickly apply the arc length result (Case 1) to the other curve example mentioned.
+
+\begin{example}{{Parabola Arc Length: $\mathbf{r}(t) = (t, t^2)$ Revisited}}
+We are interested in the length of the parabola segment $\mathbf{r}(t) = (t, t^2)$ for $t$ ranging from, say, 0 to 1.
+As calculated in Example~\ref{parabola_chord}, the tangent vector is $\mathbf{r}'(t) = (1, 2t)$ and the scaling factor (magnitude of the tangent vector) is $\|\mathbf{r}'(t)\| = \sqrt{1+4t^2}$.
+
+To find the total arc length $L$ from $t=0$ to $t=1$, we integrate this scaling factor over the interval:
+\[
+    L = \int_{0}^{1} \|\mathbf{r}'(t)\| \, dt = \int_{0}^{1} \sqrt{1 + (2t)^2} \, dt = \int_{0}^{1} \sqrt{1+4t^2} \, dt.
+\]
+Evaluating this integral requires a trigonometric substitution (e.g., $2t = \tan \theta$) or looking it up in an integral table. The result matches the calculation performed on the worksheet mentioned in class. (The evaluation is left as an exercise for the interested reader; the key point here is setting up the integral using the general framework).
+\end{example}
+
+
+% --- Administrative Section ---
+\newpage % Start admin notes on a new page for clear separation
+\section*{Administrative Announcements}
+
+Please find below the relevant administrative updates.
+
+\begin{adminnote}
+    \textbf{Course Logistics:} There were no new logistical announcements regarding course structure, deadlines, or policies mentioned in the recent lecture materials beyond the standard schedule. All information regarding assignments, exams, and grading remains as detailed in the official course syllabus available on the course website. Please refer to the syllabus as the primary source for deadlines and policies. If you have any questions, don't hesitate to reach out to the instruction team.
+\end{adminnote}
+
+\begin{adminnote}
+    \textbf{Office Hours Schedule:} The office hours schedule remains unchanged for this week:
+    \begin{itemize}
+        \item Wednesdays: 15:00 – 17:00 (via Zoom)
+        \item Thursdays: 10:00 – 11:00 (via Zoom)
+    \end{itemize}
+    Please use the links provided on the course website to join the Zoom sessions during these times.
+\end{adminnote}
+
+\clearpage % Ensure the document ends cleanly
+
+\end{document}
