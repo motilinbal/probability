@@ -1,0 +1,345 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{palatino} % Using a slightly more elegant font
+\usepackage{hyperref}
+
+% Theorem Styles
+\newtheoremstyle{mytheoremstyle}
+  {\topsep}   % Space above
+  {\topsep}   % Space below
+  {\itshape}  % Body font
+  {0pt}       % Indent amount
+  {\bfseries} % Theorem head font
+  {.}         % Punctuation after theorem head
+  {.5em}      % Space after theorem head
+  {}          % Theorem head spec (can be left empty, meaning `normal')
+\newtheoremstyle{mydefinitionstyle}
+  {\topsep}   % Space above
+  {\topsep}   % Space below
+  {\normalfont} % Body font
+  {0pt}       % Indent amount
+  {\bfseries} % Theorem head font
+  {.}         % Punctuation after theorem head
+  {.5em}      % Space after theorem head
+  {}          % Theorem head spec (can be left empty, meaning `normal')
+
+\theoremstyle{mytheoremstyle}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{mydefinitionstyle}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{exercise}[theorem]{Exercise}
+
+% Custom command for indicator function
+\newcommand{\indicator}[1]{\mathbf{1}_{#1}}
+\newcommand{\Prob}{\mathbb{P}} % Probability symbol
+
+\title{Tutorial Notes: CDFs, Transformations, and Inverse Transform}
+\date{\today} % Or specific date of lecture/tutorial
+\author{Undergraduate Mathematics Educator} % Or your name/course name
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+These notes cover key concepts related to Cumulative Distribution Functions (CDFs), including analyzing mixed distributions, calculating probabilities, handling transformations of random variables, and a brief introduction to the inverse transform method. We will work through several examples discussed in the tutorial session. Administrative details and useful formulas are also summarized.
+\end{abstract}
+
+\section*{Administrative Notes and General Advice}
+
+Here are a few points mentioned during the tutorial session:
+
+\begin{itemize}
+    \item \textbf{Visualizing CDFs:} It was highly recommended to sketch the CDF whenever possible, especially for mixed distributions (having both continuous parts and discrete jumps). This greatly helps in understanding the behavior of the random variable and identifying key features like jump points.
+    \item \textbf{Formulas from Class:} We will be using formulas for calculating probabilities from CDFs ($P(X=a)$, $P(X \le a)$, $P(X < a)$, etc.) that were introduced in lectures. You are expected to know and apply these formulas. For homework submissions, you generally don't need to re-derive these standard formulas unless specifically asked.
+    \item \textbf{Previous Material:} Some examples build upon concepts or specific problems discussed in previous tutorials (e.g., part of Question 2 was covered last time).
+    \item \textbf{Problem Set Solutions:} Solutions to the problem sets will be uploaded. Please review them carefully.
+    \item \textbf{Formula Summary:} There was a request for a summary of important formulas. I will aim to provide a list of key formulas relevant to these topics, potentially alongside the uploaded solutions. Remember that understanding the concepts behind the formulas is more important than rote memorization.
+    \item \textbf{Proof Techniques:} Question 3 involved a proof. We discussed the general approach. If you find formal proofs challenging, please don't hesitate to ask for clarification or practice examples. Understanding the logical steps is key.
+    \item \textbf{Getting Help:} If any material remains unclear after reviewing these notes and the solutions, please feel free to ask questions, for example, via email.
+\end{itemize}
+
+\section{Analyzing a Cumulative Distribution Function (CDF)}
+
+\subsection{Introduction to CDFs}
+
+The Cumulative Distribution Function (CDF) is a fundamental tool in probability theory. For any random variable $X$, its CDF, denoted by $F_X(x)$, gives the probability that $X$ takes on a value less than or equal to $x$.
+
+\begin{definition}[Cumulative Distribution Function (CDF)]
+The CDF of a random variable $X$ is the function $F_X: \mathbb{R} \to [0, 1]$ defined by
+\[ F_X(x) = \Prob(X \le x) \]
+for all $x \in \mathbb{R}$.
+\end{definition}
+
+Key properties of any CDF $F_X(x)$ include:
+\begin{itemize}
+    \item $F_X(x)$ is non-decreasing: If $a < b$, then $F_X(a) \le F_X(b)$.
+    \item $\lim_{x \to -\infty} F_X(x) = 0$.
+    \item $\lim_{x \to +\infty} F_X(x) = 1$.
+    \item $F_X(x)$ is right-continuous: $\lim_{h \to 0^+} F_X(x+h) = F_X(x)$ for all $x$.
+\end{itemize}
+
+CDFs can describe continuous random variables (where $F_X(x)$ is continuous), discrete random variables (where $F_X(x)$ is a step function), or \textit{mixed} random variables (exhibiting both continuous segments and jumps).
+
+\subsection{Example 1: A Mixed Distribution}
+
+Consider a random variable $X$ with the following CDF:
+\[
+F_X(x) = \begin{cases}
+0 & \text{if } x < -1 \\
+\frac{x}{4} + \frac{1}{2} & \text{if } -1 \le x < 1 \\
+1 & \text{if } x \ge 1
+\end{cases}
+\]
+This function defines the probability distribution of $X$. Let's analyze it.
+
+\subsubsection{Visualizing the CDF}
+
+Sketching this function is very insightful:
+\begin{itemize}
+    \item For $x < -1$, the function is constant at $0$.
+    \item At $x=-1$, the function value is $F_X(-1) = \frac{-1}{4} + \frac{1}{2} = \frac{1}{4}$. Since $\lim_{x \to -1^-} F_X(x) = 0$, there is a jump of size $\frac{1}{4} - 0 = \frac{1}{4}$ at $x=-1$. This indicates a discrete probability mass at $x=-1$.
+    \item For $-1 \le x < 1$, the function increases linearly from $F_X(-1) = \frac{1}{4}$ up to $\lim_{x \to 1^-} F_X(x) = \frac{1}{4} + \frac{1}{2} = \frac{3}{4}$. This is the continuous part of the distribution over this interval.
+    \item At $x=1$, the function value is $F_X(1) = 1$. Since $\lim_{x \to 1^-} F_X(x) = \frac{3}{4}$, there is another jump of size $1 - \frac{3}{4} = \frac{1}{4}$ at $x=1$. This indicates a discrete probability mass at $x=1$.
+    \item For $x \ge 1$, the function is constant at $1$.
+\end{itemize}
+The sketch would show a function starting at 0, jumping to 1/4 at x=-1, rising linearly to 3/4 just before x=1, jumping to 1 at x=1, and staying at 1 thereafter. This mix of jumps and a continuous rise confirms $X$ is a mixed random variable.
+
+\subsubsection{Calculating Probabilities from the CDF}
+
+We can use the CDF to calculate various probabilities.
+
+\paragraph{Point Probabilities $\Prob(X=a)$:}
+The probability that $X$ equals a specific value $a$ corresponds to the size of the jump in the CDF at $a$.
+\begin{theorem}
+For any random variable $X$ with CDF $F_X(x)$, the probability at a point $a$ is given by:
+\[ \Prob(X=a) = F_X(a) - \lim_{x \to a^-} F_X(x) = F_X(a) - F_X(a^-) \]
+If $F_X(x)$ is continuous at $x=a$, then $\Prob(X=a) = 0$. Non-zero probability only occurs at jump points (discontinuities).
+\end{theorem}
+
+Let's apply this to our example:
+\begin{itemize}
+    \item $\Prob(X=-1) = F_X(-1) - \lim_{x \to -1^-} F_X(x) = \frac{1}{4} - 0 = \frac{1}{4}$. (Matches the jump size)
+    \item $\Prob(X=1) = F_X(1) - \lim_{x \to 1^-} F_X(x) = 1 - \left(\frac{1}{4} + \frac{1}{2}\right) = 1 - \frac{3}{4} = \frac{1}{4}$. (Matches the jump size)
+    \item $\Prob(X=0)$: We check the CDF around $x=0$. The function is $F_X(x) = \frac{x}{4} + \frac{1}{2}$ for $-1 \le x < 1$. This is continuous at $x=0$. Therefore, $F_X(0) = \frac{0}{4} + \frac{1}{2} = \frac{1}{2}$ and $\lim_{x \to 0^-} F_X(x) = \frac{0}{4} + \frac{1}{2} = \frac{1}{2}$.
+    \[ \Prob(X=0) = F_X(0) - F_X(0^-) = \frac{1}{2} - \frac{1}{2} = 0. \]
+    As expected, since $x=0$ is not a jump point, the probability of hitting this exact value is zero.
+\end{itemize}
+
+\paragraph{Interval Probabilities:}
+We use the definition of the CDF and related formulas.
+\begin{itemize}
+    \item $\Prob(X \le a) = F_X(a)$.
+    \item $\Prob(X < a) = \lim_{x \to a^-} F_X(x) = F_X(a^-)$.
+    \item $\Prob(a < X \le b) = F_X(b) - F_X(a)$.
+    \item $\Prob(a \le X < b) = F_X(b^-) - F_X(a^-)$.
+    \item $\Prob(a < X < b) = F_X(b^-) - F_X(a)$.
+    \item $\Prob(a \le X \le b) = F_X(b) - F_X(a^-)$.
+\end{itemize}
+
+Let's calculate the probabilities requested in the tutorial:
+\begin{itemize}
+    \item $\Prob(X \le -1) = F_X(-1) = \frac{1}{4}$.
+    \item $\Prob(X < 1) = \lim_{x \to 1^-} F_X(x) = F_X(1^-)$. In the interval $[-1, 1)$, $F_X(x) = \frac{x}{4} + \frac{1}{2}$.
+    So, $\Prob(X < 1) = \frac{1}{4} + \frac{1}{2} = \frac{3}{4}$.
+\end{itemize}
+
+\paragraph{Absolute Value Example:} Calculate $\Prob(|X| < 1/2)$.
+This inequality is equivalent to $-1/2 < X < 1/2$. Using the formula $\Prob(a < X < b) = F_X(b^-) - F_X(a)$:
+\[ \Prob(-1/2 < X < 1/2) = F_X((1/2)^-) - F_X(-1/2) \]
+Both $x=1/2$ and $x=-1/2$ fall within the interval $[-1, 1)$, where $F_X(x) = \frac{x}{4} + \frac{1}{2}$. Since this part is continuous, $F_X((1/2)^-) = F_X(1/2)$.
+\[ F_X(1/2) = \frac{1/2}{4} + \frac{1}{2} = \frac{1}{8} + \frac{1}{2} = \frac{5}{8} \]
+\[ F_X(-1/2) = \frac{-1/2}{4} + \frac{1}{2} = -\frac{1}{8} + \frac{1}{2} = \frac{3}{8} \]
+Therefore,
+\[ \Prob(|X| < 1/2) = \frac{5}{8} - \frac{3}{8} = \frac{2}{8} = \frac{1}{4}. \]
+Wait, let's re-check the original transcript calculation. The transcript result was 3/4. Let's rethink the absolute value decomposition.
+Ah, the transcript example calculated $\Prob(|X| > 1/2)$, not less than. Let's assume the user meant to reproduce the transcript example.
+$\Prob(|X| > 1/2)$ means $X > 1/2$ or $X < -1/2$. These are disjoint events.
+\[ \Prob(|X| > 1/2) = \Prob(X > 1/2) + \Prob(X < -1/2) \]
+We know $\Prob(X > a) = 1 - \Prob(X \le a) = 1 - F_X(a)$.
+\[ \Prob(X > 1/2) = 1 - F_X(1/2) = 1 - \frac{5}{8} = \frac{3}{8} \]
+And $\Prob(X < -1/2) = F_X((-1/2)^-)$. Since $F_X$ is continuous at $-1/2$, this is $F_X(-1/2) = \frac{3}{8}$.
+\[ \Prob(|X| > 1/2) = \frac{3}{8} + \frac{3}{8} = \frac{6}{8} = \frac{3}{4}. \]
+This matches the result mentioned in the transcript (3/4). It seems the transcript example was $\Prob(|X|>1/2)$.
+
+\begin{remark}
+Pay close attention to strict ($<$) versus non-strict ($\le$) inequalities when using CDF formulas, especially near jump points.
+$P(X < a) = F_X(a^-)$ uses the limit from the left.
+$P(X \le a) = F_X(a)$ uses the function value itself (which includes the jump, if any).
+\end{remark}
+
+\section{Transformations of Random Variables}
+
+Often, we know the distribution of a random variable $X$ and want to find the distribution of a new random variable $Y$ which is a function of $X$, say $Y = g(X)$. A common and powerful technique is the **CDF method**.
+
+\textbf{General Strategy (CDF Method):}
+1.  Write down the definition of the CDF of $Y$: $F_Y(y) = \Prob(Y \le y)$.
+2.  Substitute $Y=g(X)$: $F_Y(y) = \Prob(g(X) \le y)$.
+3.  Manipulate the inequality $g(X) \le y$ to isolate $X$. This step often depends on the properties of $g$ (e.g., if it's invertible). The goal is to express the event in terms of $X$ being in some set, say $X \in A_y$.
+4.  Rewrite the probability in terms of $X$: $F_Y(y) = \Prob(X \in A_y)$.
+5.  Calculate this probability using the known distribution (CDF or PDF/PMF) of $X$.
+6.  If $Y$ is continuous, differentiate $F_Y(y)$ to find the PDF $f_Y(y)$. If $Y$ is discrete, use $F_Y(y)$ to find the PMF $p_Y(k) = F_Y(k) - F_Y(k^-)$.
+
+Let's apply this to the examples from the tutorial, where $X$ follows an Exponential distribution.
+
+\begin{definition}[Exponential Distribution]
+A continuous random variable $X$ follows an Exponential distribution with rate parameter $\lambda > 0$, denoted $X \sim \text{Exp}(\lambda)$, if its Probability Density Function (PDF) is:
+\[ f_X(x) = \begin{cases} \lambda e^{-\lambda x} & \text{if } x \ge 0 \\ 0 & \text{if } x < 0 \end{cases} \]
+Its Cumulative Distribution Function (CDF) is:
+\[ F_X(x) = \Prob(X \le x) = \begin{cases} 1 - e^{-\lambda x} & \text{if } x \ge 0 \\ 0 & \text{if } x < 0 \end{cases} \]
+The support of $X$ is $[0, \infty)$.
+\end{definition}
+
+\subsection{Example 2: $Y = \sum_{j=0}^{\infty} j \cdot \indicator{j \le X < j+1}$}
+
+Let $X \sim \text{Exp}(\lambda)$. Define $Y = \sum_{j=0}^{\infty} j \cdot \indicator{j \le X < j+1}$, where $\indicator{A}$ is the indicator function (1 if event A occurs, 0 otherwise).
+
+\subsubsection{Understanding the Variable Y}
+What kind of variable is $Y$? What values does it take?
+Consider a value $x$ taken by $X$. Since $x \ge 0$, there is a unique integer $j \ge 0$ such that $j \le x < j+1$. For this specific $j$, the indicator $\indicator{j \le X < j+1}$ will be 1. For all other integers $k \ne j$, the indicator $\indicator{k \le X < k+1}$ will be 0.
+Therefore, the infinite sum collapses to a single non-zero term:
+\[ Y = 0 \cdot \indicator{0 \le X < 1} + 1 \cdot \indicator{1 \le X < 2} + 2 \cdot \indicator{2 \le X < 3} + \dots = j \cdot 1 = j \]
+where $j$ is the unique integer satisfying $j \le X < j+1$. This is precisely the definition of the **floor function**, $j = \lfloor X \rfloor$.
+So, $Y = \lfloor X \rfloor$.
+Since $X$ can take any non-negative value, $Y$ can take values $0, 1, 2, 3, \dots$. $Y$ is a **discrete** random variable.
+
+\paragraph{Numerical Illustration (from tutorial):} If $X=2.5$.
+Then $j=2$ is the unique integer such that $2 \le 2.5 < 3$.
+$Y = 0 \cdot \indicator{0 \le 2.5 < 1} + 1 \cdot \indicator{1 \le 2.5 < 2} + 2 \cdot \indicator{2 \le 2.5 < 3} + 3 \cdot \indicator{3 \le 2.5 < 4} + \dots$
+$Y = 0 \cdot 0 + 1 \cdot 0 + 2 \cdot 1 + 3 \cdot 0 + \dots = 2$.
+Indeed, $Y = \lfloor 2.5 \rfloor = 2$.
+
+\paragraph{Edge Case (from tutorial discussion):} What if $X=2$?
+Then $j=2$ satisfies $2 \le 2 < 3$. The indicator $\indicator{2 \le X < 3}$ is 1.
+The indicator $\indicator{1 \le X < 2}$ is 0, because $X=2$ is not strictly less than 2.
+So, $Y = 0 \cdot 0 + 1 \cdot 0 + 2 \cdot 1 + 3 \cdot 0 + \dots = 2$. This works correctly, $Y = \lfloor 2 \rfloor = 2$.
+
+\subsubsection{Finding the Distribution of Y (PMF)}
+Since $Y$ is discrete, we want to find its Probability Mass Function (PMF), $p_Y(j) = \Prob(Y=j)$ for $j = 0, 1, 2, \dots$.
+The event $Y=j$ occurs if and only if $\lfloor X \rfloor = j$, which means $j \le X < j+1$.
+\[ p_Y(j) = \Prob(Y=j) = \Prob(j \le X < j+1) \]
+We can calculate this using the CDF of $X \sim \text{Exp}(\lambda)$:
+\[ \Prob(j \le X < j+1) = \Prob(X < j+1) - \Prob(X < j) \]
+Since $X$ is continuous, $\Prob(X < a) = \Prob(X \le a) = F_X(a)$.
+\[ p_Y(j) = F_X(j+1) - F_X(j) \]
+For $j \ge 0$, both $j$ and $j+1$ are non-negative, so we use $F_X(x) = 1 - e^{-\lambda x}$:
+\[ p_Y(j) = (1 - e^{-\lambda(j+1)}) - (1 - e^{-\lambda j}) \]
+\[ p_Y(j) = 1 - e^{-\lambda j} e^{-\lambda} - 1 + e^{-\lambda j} \]
+\[ p_Y(j) = e^{-\lambda j} - e^{-\lambda j} e^{-\lambda} = e^{-\lambda j} (1 - e^{-\lambda}) \]
+So, the PMF is $p_Y(j) = (e^{-\lambda})^j (1 - e^{-\lambda})$ for $j=0, 1, 2, \dots$.
+
+\subsubsection{Identifying the Distribution}
+Does this PMF look familiar? Let $p = 1 - e^{-\lambda}$. Since $\lambda > 0$, $e^{-\lambda} \in (0, 1)$, so $p \in (0, 1)$.
+Let $1-p = e^{-\lambda}$. Then the PMF becomes:
+\[ p_Y(j) = (1-p)^j p, \quad \text{for } j=0, 1, 2, \dots \]
+This is the PMF of a **Geometric distribution** starting from 0. Specifically, $Y$ counts the number of failures (parameter $1-p = e^{-\lambda}$) before the first success (parameter $p = 1 - e^{-\lambda}$) in a sequence of independent Bernoulli trials.
+
+\begin{remark}
+So, taking the floor of an Exponential random variable results in a Geometric random variable. This is a neat connection! You weren't required to identify the distribution in the exercise, but recognizing known distributions is a valuable skill.
+\end{remark}
+
+\subsection{Example 3: $V = (X-c) \indicator{X \ge c}$}
+
+Let $X \sim \text{Exp}(\lambda)$ and let $c \ge 0$ be a constant. Define $V = (X-c) \indicator{X \ge c}$.
+
+\subsubsection{Understanding the Variable V}
+Let's analyze the definition:
+\begin{itemize}
+    \item If $X < c$, the indicator $\indicator{X \ge c}$ is 0. Then $V = (X-c) \cdot 0 = 0$.
+    \item If $X \ge c$, the indicator $\indicator{X \ge c}$ is 1. Then $V = (X-c) \cdot 1 = X-c$. Since $X \ge c$, we have $V = X-c \ge 0$.
+\end{itemize}
+So, $V$ can take the value 0 (if $X<c$) or positive values (if $X \ge c$).
+$V$ is a mixed random variable: it has a discrete mass at $V=0$ and a continuous part for $V > 0$.
+Another way to write $V$ is $V = \max(0, X-c)$.
+
+\subsubsection{Finding the Distribution of V (CDF)}
+We use the CDF method: $F_V(v) = \Prob(V \le v)$. We need to consider different ranges for $v$.
+\begin{itemize}
+    \item \textbf{Case 1: $v < 0$}
+    Since $V$ only takes non-negative values ($V=0$ or $V=X-c \ge 0$), the event $V \le v$ where $v<0$ is impossible.
+    \[ F_V(v) = \Prob(V \le v) = 0, \quad \text{for } v < 0 \]
+
+    \item \textbf{Case 2: $v = 0$}
+    This corresponds to the probability mass at zero.
+    \[ F_V(0) = \Prob(V \le 0) \]
+    Since $V \ge 0$, this is just $\Prob(V=0)$.
+    The event $V=0$ occurs if and only if $X < c$.
+    \[ F_V(0) = \Prob(V=0) = \Prob(X < c) = F_X(c^-) \]
+    Since $X$ is continuous, $F_X(c^-)=F_X(c)$. Assuming $c \ge 0$:
+    \[ F_V(0) = F_X(c) = 1 - e^{-\lambda c} \]
+    This confirms the probability mass at $V=0$.
+
+    \item \textbf{Case 3: $v > 0$}
+    We want $F_V(v) = \Prob(V \le v)$. We can use the Law of Total Probability, conditioning on whether $X < c$ or $X \ge c$:
+    \[ \Prob(V \le v) = \Prob(V \le v \text{ and } X < c) + \Prob(V \le v \text{ and } X \ge c) \]
+    Let's analyze each part:
+    \begin{itemize}
+        \item If $X < c$, then $V=0$. The condition $V \le v$ (for $v>0$) is $0 \le v$, which is always true. So, $\Prob(V \le v \text{ and } X < c) = \Prob(X < c)$.
+        \item If $X \ge c$, then $V = X-c$. The condition $V \le v$ becomes $X-c \le v$, or $X \le c+v$. So, $\Prob(V \le v \text{ and } X \ge c) = \Prob(X \le c+v \text{ and } X \ge c) = \Prob(c \le X \le c+v)$.
+    \end{itemize}
+    Combining these:
+    \[ F_V(v) = \Prob(X < c) + \Prob(c \le X \le c+v) \]
+    Using the CDF of $X$:
+    \[ \Prob(X < c) = F_X(c) \quad \text{(since X is continuous)} \]
+    \[ \Prob(c \le X \le c+v) = F_X(c+v) - F_X(c^-) = F_X(c+v) - F_X(c) \]
+    Therefore, for $v > 0$:
+    \[ F_V(v) = F_X(c) + (F_X(c+v) - F_X(c)) = F_X(c+v) \]
+    Since $c \ge 0$ and $v > 0$, $c+v > 0$. Substituting the exponential CDF:
+    \[ F_V(v) = 1 - e^{-\lambda(c+v)}, \quad \text{for } v > 0 \]
+\end{itemize}
+
+\paragraph{Putting it together:}
+The CDF of $V = \max(0, X-c)$ where $X \sim \text{Exp}(\lambda)$ and $c \ge 0$ is:
+\[
+F_V(v) = \begin{cases}
+0 & \text{if } v < 0 \\
+1 - e^{-\lambda c} & \text{if } v = 0 \\
+1 - e^{-\lambda(c+v)} & \text{if } v > 0
+\end{cases}
+\]
+Note that $\lim_{v \to 0^+} F_V(v) = \lim_{v \to 0^+} (1 - e^{-\lambda(c+v)}) = 1 - e^{-\lambda c} = F_V(0)$. The function is right-continuous at $v=0$, as expected for a CDF.
+The jump at $v=0$ has size $F_V(0) - F_V(0^-) = (1 - e^{-\lambda c}) - 0 = 1 - e^{-\lambda c}$, confirming the probability mass $\Prob(V=0)$.
+
+\section{The Inverse Transform Method (Sketch)}
+
+This last part explores a fascinating connection between a random variable's CDF and the Uniform distribution, which is the basis for generating random samples from arbitrary distributions in simulations.
+
+\subsection{Setup}
+Let $F$ be a continuous, strictly increasing CDF of some random variable. Because it's continuous and strictly increasing, its inverse function $F^{-1}$ exists. Let $G = F^{-1}$. The domain of $G$ is $(0, 1)$ and its range is the support of the random variable with CDF $F$.
+
+Now, let $X$ be a random variable following the standard Uniform distribution on $(0, 1)$, denoted $X \sim U(0, 1)$. Recall that the CDF of $X$ is $F_X(u) = u$ for $u \in [0, 1]$.
+
+Define a new random variable $Y = G(X) = F^{-1}(X)$. The question is: What is the distribution of $Y$?
+
+\subsection{Example 4: Showing $Y$ has CDF $F$}
+
+We want to find the CDF of $Y$, $F_Y(y) = \Prob(Y \le y)$. We use the CDF method.
+
+1.  **Definition:** $F_Y(y) = \Prob(Y \le y)$.
+2.  **Substitute $Y=G(X)$:** $F_Y(y) = \Prob(G(X) \le y) = \Prob(F^{-1}(X) \le y)$.
+3.  **Isolate X:** Since $F$ is strictly increasing, applying $F$ to both sides of the inequality preserves its direction:
+    \[ F(F^{-1}(X)) \le F(y) \]
+    \[ X \le F(y) \]
+    *Self-Correction/Clarification:* We need $y$ to be in the range of $G$ (the support of the original variable) for $F(y)$ to be defined appropriately within the context of $X \sim U(0,1)$. Let's assume $y$ is such that $F(y) \in (0, 1)$.
+4.  **Rewrite probability:** $F_Y(y) = \Prob(X \le F(y))$.
+5.  **Use CDF of X:** Since $X \sim U(0, 1)$, its CDF is $F_X(u) = \Prob(X \le u) = u$ for $u \in [0, 1]$. Let $u = F(y)$. Since $F$ is a CDF, its value $F(y)$ is indeed between 0 and 1.
+    \[ F_Y(y) = F_X(F(y)) = F(y) \]
+
+\textbf{Conclusion:} We have shown that $F_Y(y) = F(y)$. This means the random variable $Y = F^{-1}(X)$, where $X \sim U(0, 1)$, has the original CDF $F$.
+
+\begin{remark}[Inverse Transform Sampling]
+This result is incredibly useful. It tells us that if we can compute the inverse CDF $F^{-1}$, we can generate random samples from the distribution $F$ by:
+1. Generating a random number $u$ from the standard Uniform distribution $U(0, 1)$ (computers are very good at this).
+2. Calculating $y = F^{-1}(u)$. The resulting $y$ will be a random sample from the distribution with CDF $F$.
+This is known as the inverse transform method.
+\end{remark}
+
+This concludes the main topics covered. Remember to review the concepts and practice applying the formulas and techniques.
+
+\end{document}
