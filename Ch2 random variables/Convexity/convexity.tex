@@ -1,0 +1,252 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref} % For potential links, good practice
+
+% Setup theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Define lambda for consistency
+\newcommand{\lambdaa}{\lambda} % Using \lambdaa in case \lambda is redefined
+
+% For administrative notes - a simple framed box environment
+\newenvironment{adminnote}{%
+  \par\medskip\noindent
+  \begin{center} % Center the box for prominence
+  \begin{minipage}{0.9\linewidth} % Box width relative to text width
+  \hrule height 0.5pt \kern 6pt % Top rule
+  \textbf{Administrative Notes:} \kern 6pt % Title
+  \hrule height 0.5pt \kern 6pt % Separator rule
+  \vspace{\smallskipamount} % Add a little space before the list
+}{%
+  \vspace{\smallskipamount} % Add a little space after the list
+  \kern 6pt \hrule height 0.5pt % Bottom rule
+  \end{minipage}
+  \end{center}
+  \par\medskip
+}
+
+
+\title{Lecture Notes Supplement: Convex Functions}
+\author{MATH XXX - Course Name \\ \small (Rewritten based on lecture of [Original Lecture Date])}
+\date{\today} % Use current date, or specify if needed
+
+\begin{document}
+\maketitle
+
+%=========================================================
+% Administrative Section
+%=========================================================
+\begin{adminnote}
+    \textit{Welcome back, everyone! Before we dive into today's fascinating topic, a few quick notes:}
+    \begin{itemize}
+        \item \textbf{Homework X:} Due [Date] at [Time] via [Submission Method]. Remember to start early!
+        \item \textbf{Office Hours:} My office hours this week are [Time] on [Day] in [Location]. [TA Name]'s office hours are [Time] on [Day] in [Location].
+        \item \textbf{Midterm Exam:} Scheduled for [Date] during class time in [Location]. More details on coverage next week.
+        \item \textbf{Reading:} For this topic, please refer to Chapter Y, Section Z in the textbook. These notes supplement the reading.
+    \end{itemize}
+    \textit{(Note: Please replace the bracketed information above with the actual details from the original lecture if they were provided. If no administrative details were given in the original source, this section serves as a template placeholder.)}
+\end{adminnote}
+
+%=========================================================
+% Mathematical Content Section
+%=========================================================
+\section{Convexity: Definition and Geometric Intuition}
+
+Today, we explore a fundamental property of functions known as \emph{convexity}. You might have an intuitive sense of what "convex" means from geometry (like a convex lens or a convex polygon). In the context of functions, convexity captures a specific kind of "bending" behavior of the graph. Why is this important? Convex functions appear everywhere – in optimization problems (where they guarantee that a local minimum is also a global minimum), in probability theory (leading to powerful inequalities like Jensen's), and in many areas of analysis and geometry. Understanding convexity provides us with powerful tools for analyzing functions.
+
+Let's formalize this idea.
+
+\begin{definition}[Convex Function (Def 1.12)] \label{def:convex}
+Let $I \subseteq \mathbb{R}$ be an interval. A function $g: I \to \mathbb{R}$ is called \textbf{convex} on $I$ if for all $x_1, x_2 \in I$ and for all $\lambdaa \in [0, 1]$, the following inequality holds:
+\[
+g(\lambdaa x_1 + (1-\lambdaa) x_2) \le \lambdaa g(x_1) + (1-\lambdaa) g(x_2)
+\]
+If the inequality holds strictly ($<$) for all $x_1 \neq x_2$ and $\lambdaa \in (0, 1)$, the function is called \textbf{strictly convex}.
+
+A function $g$ is called \textbf{concave} on $I$ if the inequality is reversed ($\ge$), and \textbf{strictly concave} if the inequality is strictly reversed ($>$) for $x_1 \neq x_2$ and $\lambdaa \in (0, 1)$.
+\end{definition}
+
+\begin{remark}
+Notice that $g$ is concave if and only if $-g$ is convex. This simple observation means that any property or theorem we establish for convex functions has a direct analogue for concave functions, usually just by flipping signs or inequalities appropriately. Therefore, we will often focus our attention on convex functions.
+\end{remark}
+
+\paragraph{Geometric Interpretation of the Definition:}
+What does the inequality in Definition \ref{def:convex} really say? The expression $\lambdaa x_1 + (1-\lambdaa) x_2$ represents any point between $x_1$ and $x_2$ (inclusive) as $\lambdaa$ varies from 0 to 1. The point on the graph corresponding to this x-value is $( \lambdaa x_1 + (1-\lambdaa) x_2, g(\lambdaa x_1 + (1-\lambdaa) x_2) )$.
+
+On the right side, the expression $\lambdaa g(x_1) + (1-\lambdaa) g(x_2)$ represents the y-value on the line segment (the "chord") connecting the points $(x_1, g(x_1))$ and $(x_2, g(x_2))$ on the graph of $g$, evaluated at the same x-coordinate $\lambdaa x_1 + (1-\lambdaa) x_2$.
+
+So, the definition $g(\lambdaa x_1 + (1-\lambdaa) x_2) \le \lambdaa g(x_1) + (1-\lambdaa) g(x_2)$ means that for any two points on the graph of a convex function, the graph of the function between these points lies \emph{below or on} the chord connecting them. Picturing this helps build intuition!
+
+\section{An Alternative Characterization of Convexity}
+
+The definition is fundamental, but sometimes another characterization is more useful, especially when dealing with differentiable functions. The following lemma provides such an alternative viewpoint.
+
+\begin{lemma}[Characterization via Linear Support (Lemma 1.13)] \label{lem:linear_support}
+Let $I \subseteq \mathbb{R}$ be an interval and $g: I \to \mathbb{R}$. The function $g$ is convex on $I$ if and only if for every $x \in I$, there exists a real number $v(x)$ such that for all $y \in I$,
+\[
+g(y) \ge g(x) + v(x)(y-x)
+\]
+\end{lemma}
+
+\paragraph{Geometric Interpretation of the Lemma:}
+The expression $L_x(y) = g(x) + v(x)(y-x)$ defines a line that passes through the point $(x, g(x))$ on the graph of $g$. The lemma states that $g$ is convex if and only if, for any point $x$ on the graph, we can find a line passing through $(x, g(x))$ (with slope $v(x)$) such that the entire graph of $g$ lies \emph{above or on} this line. Such a line is often called a supporting line. If $g$ is differentiable at $x$, we will see that the natural choice for $v(x)$ is the derivative $g'(x)$, meaning a convex function lies above all of its tangent lines.
+
+\begin{proof}[Proof of Lemma \ref{lem:linear_support}]
+We need to prove both directions of the "if and only if" statement.
+
+($\implies$) Assume $g$ is convex. We need to show that for any $x \in I$, such a $v(x)$ exists.
+Let $x \in I$ be fixed. Consider any $y \in I$ with $y \neq x$. The definition of convexity involves the inequality stating that secant lines lie above the graph. More fundamentally, for a convex function, the slopes of secant lines starting at $x$ are non-decreasing as the other endpoint moves away from $x$. That is, for $y_1 < y_2 < x < y_3 < y_4$ in $I$, we have
+\[ \frac{g(y_2)-g(y_1)}{y_2-y_1} \le \frac{g(x)-g(y_1)}{x-y_1} \le \frac{g(y_3)-g(x)}{y_3-x} \le \frac{g(y_4)-g(x)}{y_4-x} \]
+This implies that the limit of the slopes of secants from the left and the limit from the right both exist, although they might not be equal if $g$ is not differentiable at $x$. Let $g'_-(x)$ and $g'_+(x)$ denote the left-hand and right-hand derivatives, respectively. It's a property of convex functions that $g'_-(x) \le g'_+(x)$ for $x$ in the interior of $I$. Furthermore, for any $y < x < z$ in $I$,
+\[ \frac{g(x)-g(y)}{x-y} \le g'_-(x) \le g'_+(x) \le \frac{g(z)-g(x)}{z-x} \]
+We can choose *any* value $v(x)$ between the left and right derivatives (inclusive), i.e., $v(x) \in [g'_-(x), g'_+(x)]$. For instance, let's choose $v(x) = g'_+(x)$ (if $x$ is not the right endpoint) or $v(x) = g'_-(x)$ (if $x$ is not the left endpoint). If $x$ is an interior point, both exist, and we can choose either, or any value in between.
+Let's take $v(x)$ such that $g'_-(x) \le v(x) \le g'_+(x)$.
+If $y > x$, then $\frac{g(y)-g(x)}{y-x} \ge g'_+(x) \ge v(x)$. Since $y-x > 0$, this implies $g(y)-g(x) \ge v(x)(y-x)$.
+If $y < x$, then $\frac{g(x)-g(y)}{x-y} \le g'_-(x) \le v(x)$. Since $x-y > 0$, this implies $g(x)-g(y) \le v(x)(x-y)$. Rearranging gives $g(y) \ge g(x) - v(x)(x-y) = g(x) + v(x)(y-x)$.
+In both cases (and trivially if $y=x$), we have $g(y) \ge g(x) + v(x)(y-x)$. Thus, such a $v(x)$ exists.
+(Note: If $g$ is differentiable at $x$, then $g'_-(x) = g'_+(x) = g'(x)$, and we must choose $v(x) = g'(x)$.)
+
+($\impliedby$) Assume that for every $x \in I$, there exists $v(x)$ such that $g(y) \ge g(x) + v(x)(y-x)$ for all $y \in I$. We want to show $g$ is convex.
+Let $x_1, x_2 \in I$ and $\lambdaa \in [0, 1]$. Let $x = \lambdaa x_1 + (1-\lambdaa) x_2$. By our assumption, there exists $v(x)$ such that the inequality holds for $y=x_1$ and $y=x_2$:
+\begin{align*}
+g(x_1) &\ge g(x) + v(x)(x_1 - x) \\
+g(x_2) &\ge g(x) + v(x)(x_2 - x)
+\end{align*}
+Multiply the first inequality by $\lambdaa \ge 0$ and the second by $(1-\lambdaa) \ge 0$:
+\begin{align*}
+\lambdaa g(x_1) &\ge \lambdaa g(x) + \lambdaa v(x)(x_1 - x) \\
+(1-\lambdaa) g(x_2) &\ge (1-\lambdaa) g(x) + (1-\lambdaa) v(x)(x_2 - x)
+\end{align*}
+Now, add these two inequalities:
+\[
+\lambdaa g(x_1) + (1-\lambdaa) g(x_2) \ge (\lambdaa + (1-\lambdaa)) g(x) + v(x) [ \lambdaa(x_1 - x) + (1-\lambdaa)(x_2 - x) ]
+\]
+Let's examine the term in the square brackets:
+\begin{align*}
+\lambdaa(x_1 - x) + (1-\lambdaa)(x_2 - x) &= \lambdaa x_1 - \lambdaa x + (1-\lambdaa) x_2 - (1-\lambdaa) x \\
+&= (\lambdaa x_1 + (1-\lambdaa) x_2) - (\lambdaa + 1 - \lambdaa) x \\
+&= x - 1 \cdot x \\
+&= 0
+\end{align*}
+So, the $v(x)$ term vanishes, and we are left with:
+\[
+\lambdaa g(x_1) + (1-\lambdaa) g(x_2) \ge g(x)
+\]
+Substituting $x = \lambdaa x_1 + (1-\lambdaa) x_2$ back gives:
+\[
+\lambdaa g(x_1) + (1-\lambdaa) g(x_2) \ge g(\lambdaa x_1 + (1-\lambdaa) x_2)
+\]
+This is precisely the definition of convexity (Definition \ref{def:convex}).
+\end{proof}
+
+\section{Convexity and Derivatives}
+
+Lemma \ref{lem:linear_support} becomes particularly powerful when the function $g$ is differentiable. As hinted in the proof, if $g$ is differentiable at $x$, the supporting line is simply the tangent line, $v(x) = g'(x)$.
+
+\begin{corollary}[Convexity and the First Derivative] \label{cor:first_deriv}
+Let $g: I \to \mathbb{R}$ be differentiable on the interval $I$. Then $g$ is convex on $I$ if and only if its derivative $g'$ is non-decreasing on $I$.
+\end{corollary}
+
+\begin{proof}
+($\implies$) Assume $g$ is convex and differentiable. By Lemma \ref{lem:linear_support} with $v(x)=g'(x)$, for any $x, y \in I$, we have $g(y) \ge g(x) + g'(x)(y-x)$. Also, swapping roles of $x$ and $y$, $g(x) \ge g(y) + g'(y)(x-y)$. Adding these inequalities gives:
+\[ g(x)+g(y) \ge g(x)+g(y) + g'(x)(y-x) + g'(y)(x-y) \]
+This simplifies to $0 \ge g'(x)(y-x) - g'(y)(y-x)$, or
+\[ 0 \ge (g'(x) - g'(y))(y-x) \]
+If $y > x$, then $y-x > 0$, so we must have $g'(x) - g'(y) \le 0$, which means $g'(x) \le g'(y)$.
+If $y < x$, then $y-x < 0$, so we must have $g'(x) - g'(y) \ge 0$, which also means $g'(x) \ge g'(y)$.
+In either case, if $x_1 < x_2$ are points in $I$, then $g'(x_1) \le g'(x_2)$. Thus, $g'$ is non-decreasing on $I$.
+
+($\impliedby$) Assume $g'$ is non-decreasing. We want to show $g(y) \ge g(x) + g'(x)(y-x)$ for all $x, y \in I$. By the Mean Value Theorem, for any $x \neq y$ in $I$, there exists some $c$ strictly between $x$ and $y$ such that $g(y) - g(x) = g'(c)(y-x)$.
+\begin{itemize}
+    \item If $y > x$, then $x < c < y$. Since $g'$ is non-decreasing, $g'(c) \ge g'(x)$. Multiplying by the positive quantity $y-x$, we get $g'(c)(y-x) \ge g'(x)(y-x)$. Therefore, $g(y) - g(x) \ge g'(x)(y-x)$.
+    \item If $y < x$, then $y < c < x$. Since $g'$ is non-decreasing, $g'(c) \le g'(x)$. Multiplying by the negative quantity $y-x$, we must reverse the inequality: $g'(c)(y-x) \ge g'(x)(y-x)$. Therefore, $g(y) - g(x) \ge g'(x)(y-x)$ holds in this case too.
+\end{itemize}
+If $y=x$, the inequality $g(x) \ge g(x) + g'(x)(x-x)$ is trivially true ($g(x) \ge g(x)$).
+Thus, $g(y) \ge g(x) + g'(x)(y-x)$ holds for all $x, y \in I$. By Lemma \ref{lem:linear_support}, $g$ is convex.
+\end{proof}
+
+If the function is twice differentiable, we get an even simpler condition.
+
+\begin{theorem}[Convexity and the Second Derivative] \label{thm:second_deriv}
+Let $g: I \to \mathbb{R}$ be twice differentiable on the interval $I$. Then $g$ is convex on $I$ if and only if $g''(x) \ge 0$ for all $x \in I$.
+\end{theorem}
+
+\begin{proof}
+This follows almost directly from Corollary \ref{cor:first_deriv}. A differentiable function $g'$ is non-decreasing on an interval $I$ if and only if its derivative, $(g')' = g''$, is non-negative on $I$. This is a standard result from calculus.
+
+Alternatively, we can directly use the Taylor expansion with integral remainder, as suggested in the original notes. Assume $g$ is twice differentiable. By the Fundamental Theorem of Calculus applied twice:
+\begin{align*}
+g(y) &= g(x) + \int_{x}^{y} g'(u) \, du \\
+&= g(x) + \int_{x}^{y} \left( g'(x) + \int_{x}^{u} g''(v) \, dv \right) du \\
+&= g(x) + g'(x) \int_{x}^{y} 1 \, du + \int_{x}^{y} \left( \int_{x}^{u} g''(v) \, dv \right) du \\
+&= g(x) + g'(x)(y-x) + \int_{x}^{y} \int_{x}^{u} g''(v) \, dv \, du
+\end{align*}
+Rearranging gives the expression for the difference between $g(y)$ and its tangent approximation at $x$:
+\[
+g(y) - \left( g(x) + g'(x)(y-x) \right) = \int_{x}^{y} \int_{x}^{u} g''(v) \, dv \, du
+\]
+Now, we analyze the sign of the double integral term.
+If $g''(v) \ge 0$ for all $v \in I$:
+\begin{itemize}
+    \item If $y > x$, then $u$ ranges from $x$ to $y$. For each $u$ in $(x, y]$, $v$ ranges from $x$ to $u$. Since $g''(v) \ge 0$, the inner integral $\int_{x}^{u} g''(v) \, dv \ge 0$. Then, integrating this non-negative function from $x$ to $y$ results in a non-negative value for the double integral.
+    \item If $y < x$, let's rewrite the integration limits to be increasing. Let $F(u) = \int_{x}^{u} g''(v) dv = - \int_{u}^{x} g''(v) dv$. If $u < x$, then $v$ ranges from $u$ to $x$, so $\int_{u}^{x} g''(v) dv \ge 0$, which means $F(u) \le 0$ for $u < x$. The double integral is $\int_{x}^{y} F(u) du = -\int_{y}^{x} F(u) du$. Since $F(u) \le 0$ on $(y, x)$, the integral $\int_{y}^{x} F(u) du \le 0$. Multiplying by $-1$ gives a result $\ge 0$.
+\end{itemize}
+In both cases ($y>x$ and $y<x$), if $g''(v) \ge 0$ for all $v$ between $x$ and $y$, then the double integral term is non-negative.
+Therefore, $g(y) - ( g(x) + g'(x)(y-x) ) \ge 0$, which means $g(y) \ge g(x) + g'(x)(y-x)$. By Lemma \ref{lem:linear_support}, this implies $g$ is convex.
+
+Conversely, assume $g$ is convex. Since $g$ is differentiable, by Corollary \ref{cor:first_deriv}, $g'$ is non-decreasing on $I$. Since $g$ is twice differentiable, the derivative of $g'$, which is $g''$, must be non-negative on $I$. That is, $g''(x) \ge 0$ for all $x \in I$.
+\end{proof}
+
+This theorem provides a very practical and often easily applicable test for convexity for sufficiently smooth functions.
+
+\begin{example}[Examples of Convex Functions (Original Examples)] \label{ex:original_convex}
+Let's use the second derivative test (Theorem \ref{thm:second_deriv}) to verify the convexity of the functions mentioned in the original notes.
+\begin{enumerate}
+    \item \textbf{The Exponential Function:} Consider $g(x) = e^x$ defined on the interval $I = \mathbb{R}$.
+        We compute the derivatives:
+        $g'(x) = e^x$
+        $g''(x) = e^x$
+        Since $e^x > 0$ for all real $x$, we have $g''(x) \ge 0$ for all $x \in \mathbb{R}$. Therefore, by Theorem \ref{thm:second_deriv}, $g(x) = e^x$ is convex on $\mathbb{R}$. (In fact, since $g''(x) > 0$, it is strictly convex.)
+
+    \item \textbf{Power Functions:} Consider $g(x) = x^p$. The original notes specify the case $p \ge 2$.
+        We compute the derivatives:
+        $g'(x) = px^{p-1}$
+        $g''(x) = p(p-1)x^{p-2}$
+        We need to consider the domain $I$ and the condition $g''(x) \ge 0$.
+        \begin{itemize}
+            \item Case 1: $p=2$. Then $g(x)=x^2$. $g''(x) = 2(1)x^0 = 2$. Since $g''(x) = 2 \ge 0$ for all $x \in \mathbb{R}$, the function $g(x)=x^2$ is convex on $I=\mathbb{R}$.
+            \item Case 2: $p > 2$.
+                \begin{itemize}
+                    \item If we consider the domain $I = (0, \infty)$: Here $x > 0$, so $x^{p-2}$ is positive and well-defined. Since $p > 2$, both $p$ and $p-1$ are positive. Thus, their product $p(p-1)$ is positive. Therefore, $g''(x) = p(p-1)x^{p-2} > 0$ for all $x \in (0, \infty)$. So, $g(x) = x^p$ is strictly convex on $(0, \infty)$ for $p > 2$.
+                    \item If $p$ is an integer $\ge 2$: $g(x)=x^p$ is defined on $I=\mathbb{R}$.
+                        If $p$ is even, then $p-2$ is an even non-negative integer. Thus $x^{p-2} \ge 0$ for all $x \in \mathbb{R}$. Since $p(p-1) \ge 0$ (positive if $p>2$), $g''(x) = p(p-1)x^{p-2} \ge 0$ for all $x \in \mathbb{R}$. So $g(x)=x^p$ is convex on $\mathbb{R}$ for even integers $p \ge 2$.
+                        If $p$ is odd and $p \ge 3$, then $p-2$ is an odd positive integer. Thus $x^{p-2}$ is positive for $x>0$ and negative for $x<0$. Since $p(p-1) > 0$, $g''(x)$ changes sign at $x=0$. It is positive for $x>0$ (convex there) and negative for $x<0$ (concave there). So $g(x)=x^p$ for odd integers $p \ge 3$ is not convex on $\mathbb{R}$ (only on $[0, \infty)$).
+                \end{itemize}
+        \end{itemize}
+        Summary for $g(x)=x^p, p \ge 2$: It is convex on $(0, \infty)$. It is convex on $\mathbb{R}$ if $p$ is an even integer. It is convex on $[0, \infty)$ if $p$ is any real number $\ge 2$ (or even $p \in [1, 2)$), provided we define derivatives appropriately at $x=0$ if needed, or just check the definition. The second derivative test $g''(x) = p(p-1)x^{p-2} \ge 0$ is most easily applied on $(0, \infty)$ where $x^{p-2}$ is always positive.
+\end{enumerate}
+These examples confirm the utility of the second derivative test for establishing convexity.
+\end{example}
+
+\begin{remark}[Further Examples/Non-Examples]
+\begin{itemize}
+    \item $g(x) = |x|$ is convex on $\mathbb{R}$ (check Definition \ref{def:convex}), but not differentiable at $x=0$. It satisfies Lemma \ref{lem:linear_support} (e.g., $v(0)$ can be any value in $[-1, 1]$).
+    \item $g(x) = -\ln(x)$ is convex on $(0, \infty)$. $g'(x) = -1/x$, $g''(x) = 1/x^2 > 0$.
+    \item $g(x) = x^3$ is neither convex nor concave on $\mathbb{R}$ ($g''(x)=6x$, which changes sign), but it is convex on $[0, \infty)$ and concave on $(-\infty, 0]$.
+\end{itemize}
+\end{remark}
+
+\begin{remark}
+Convexity is a cornerstone concept with far-reaching implications. These equivalent characterizations—the fundamental secant line definition, the supporting line property, the non-decreasing first derivative, and the non-negative second derivative—provide a versatile toolkit for identifying and working with convex functions. We will leverage this understanding, particularly when exploring Jensen's inequality in probability theory and its role in optimization.
+\end{remark}
+
+\end{document}

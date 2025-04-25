@@ -1,0 +1,366 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{palatino} % A slightly more elegant font choice
+\usepackage{hyperref}
+\usepackage{framed} % For boxing administrative notes
+\usepackage{leftidx} % Sometimes useful for CDF notation, though not strictly needed here
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={Lecture Notes: Expectation, Variance, and Transformations}, % Added PDF metadata
+    pdfauthor={Undergraduate Mathematics Exposition}
+}
+
+% Theorem Environments
+\theoremstyle{plain} % Bold title, italic body
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{definition} % Bold title, normal body
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark} % Italic title, normal body
+\newtheorem{remark}[theorem]{Remark}
+
+% Custom environment for administrative announcements
+% Using leftbar requires the framed package options or similar,
+% for simplicity, let's just use framed directly.
+\newenvironment{announcement}
+  {\begin{framed}\noindent\textbf{Announcements \& Course Notes:}\par\medskip\begin{itemize}}
+  {\end{itemize}\end{framed}}
+
+% Custom environment for instructor comments/intuition
+\newenvironment{instructorcomment}
+  {\par\medskip\noindent\begin{framed}\textbf{Instructor's Note:} \normalfont}
+  {\end{framed}\medskip}
+
+% Math Macros
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\dee}{\mathop{}\!\mathrm{d}} % Differential 'd' for integrals
+\newcommand{\BetaFunc}{B} % Use B for Beta function
+
+\title{Lecture Notes: Expectation, Variance, and Transformations}
+\author{Undergraduate Mathematics Exposition} % Placeholder
+\date{\today} % Or specific lecture date
+
+\begin{document}
+\maketitle
+
+%=====================================================
+% Administrative Section
+%=====================================================
+\begin{announcement}
+    \item \textbf{Formula Sheet for Exercise 1:} A file with relevant formulas and details pertaining to Exercise Set 1 was requested during a Zoom session. I have uploaded this file to Moodle. Please let me know if you have trouble accessing it.
+    \item \textbf{General Formula Sheet Status:} We are preparing a general formula sheet for the course, which should be available for quizzes and exams. It is not ready yet, but I hope to have it uploaded to Moodle as soon as possible. I will confirm whether the *same* sheet will be used for both the upcoming quiz and the final exam.
+    \item \textbf{Quiz/Exam Format:} Please note that exams in this course are generally *not* open-book/open-material, apart from the provided formula sheet. I will verify the specific rules for the upcoming quiz and let you know.
+    \item \textbf{Today's Exercise Set:} Today's material and associated exercises are relatively long. We may not cover every single part in today's recitation/lecture slot. I will aim to cover the remaining parts in a supplementary session which will be recorded and made available.
+    \item \textbf{Previous Exercise Set (Exercise 1):} I hope you found Exercise Set 1 manageable and had a chance to attempt the problems. Today's topics build upon the concepts introduced there.
+    \item \textbf{Individual Requests:} If you have specific questions or need clarification, please use the standard channels (office hours, discussion forum). For broader issues, representation through the student committee might be appropriate, rather than many individual emails on the same topic.
+\end{announcement}
+
+%=====================================================
+% Mathematical Content Begins
+%=====================================================
+
+\section{Introduction: Expectation and Variance}
+
+Welcome back! Today, we delve deeper into two fundamental characteristics of random variables: **expectation** (often thought of as the "average" value) and **variance** (a measure of how spread out the values are). We'll also explore **moments**, which generalize these ideas.
+
+Recall the general definitions:
+
+\begin{definition}[Expectation]
+Let $X$ be a random variable.
+\begin{itemize}
+    \item If $X$ is discrete with probability mass function (PMF) $p_X(x)$, its expectation is
+          \[ \E[X] = \sum_x x \, p_X(x), \]
+          provided the sum converges absolutely.
+    \item If $X$ is continuous with probability density function (PDF) $f_X(x)$, its expectation is
+          \[ \E[X] = \int_{-\infty}^{\infty} x \, f_X(x) \dee x, \]
+          provided the integral converges absolutely.
+    \item For a function $g(X)$, $\E[g(X)] = \sum_x g(x) p_X(x)$ (discrete) or $\E[g(X)] = \int_{-\infty}^{\infty} g(x) f_X(x) \dee x$ (continuous).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Variance]
+The variance of a random variable $X$ is defined as $\Var(X) = \E[(X - \E[X])^2]$. A computationally useful formula is $\Var(X) = \E[X^2] - (\E[X])^2$.
+\end{definition}
+
+Today, we'll focus particularly on applying these definitions to variables that might be *mixed* (having both discrete and continuous components) and how to handle calculations involving specific, named distributions. We'll also see some elegant techniques for simplifying calculations.
+
+\section{Handling Mixed Random Variables}
+
+Sometimes, a random variable's distribution isn't purely discrete or purely continuous. It might have "jumps" (atoms) at specific points where $\Prob(X=x) > 0$, but also behave continuously over certain intervals. How do we calculate expectation in such cases?
+
+The key is to combine the definitions: sum over the discrete points and integrate over the continuous parts.
+
+If $X$ has discrete probability mass at points $x_i$ with $\Prob(X=x_i) = p_i$, and behaves continuously with PDF $f_c(x)$ over other regions (where $\int f_c(x) \dee x + \sum p_i = 1$), then:
+\[ \E[X] = \sum_i x_i p_i + \int_{-\infty}^{\infty} x f_c(x) \dee x \]
+Similarly, $\E[g(X)] = \sum_i g(x_i) p_i + \int_{-\infty}^{\infty} g(x) f_c(x) \dee x$.
+
+\begin{instructorcomment}
+    It's crucial to correctly identify *both* the discrete points (and their probabilities) and the continuous density part. Even if simply integrating the overall (improper) PDF over the whole range might accidentally yield the correct numerical answer in some cases (due to points having measure zero in integration), the *conceptually correct* approach is to treat the discrete and continuous parts separately according to their definitions. This ensures we are correctly weighting each part of the distribution.
+\end{instructorcomment}
+
+\begin{example}[From Exercise 1, Mixed Distribution] \label{ex:mixed}
+Suppose a random variable $X$ has the following cumulative distribution function (CDF), $F_X(x)$, which we analyzed in a previous exercise:
+\[ F_X(x) = \begin{cases} 0 & x < 0 \\ \frac{1}{4} & 0 \le x < 1 \\ \frac{1}{4} + \frac{x-1}{2} & 1 \le x < 2 \\ 1 & x \ge 2 \end{cases} \]
+We want to calculate $\E[X]$ and $\Var(X)$.
+
+\textbf{Step 1: Identify Discrete and Continuous Parts}
+We look for jumps in the CDF.
+\begin{itemize}
+    \item At $x=0$: Jump size is $F_X(0) - \lim_{x \to 0^-} F_X(x) = \frac{1}{4} - 0 = \frac{1}{4}$. So, $\Prob(X=0) = 1/4$.
+    \item At $x=1$: Jump size is $F_X(1) - \lim_{x \to 1^-} F_X(x) = (\frac{1}{4} + \frac{1-1}{2}) - \frac{1}{4} = \frac{1}{4} - \frac{1}{4} = 0$. No jump here.
+    \item At $x=2$: Jump size is $F_X(2) - \lim_{x \to 2^-} F_X(x) = 1 - (\frac{1}{4} + \frac{2-1}{2}) = 1 - (\frac{1}{4} + \frac{1}{2}) = 1 - \frac{3}{4} = \frac{1}{4}$. So, $\Prob(X=2) = 1/4$.
+
+    *Consistency Check:* The transcript analysis implied jumps at 0 and 2. Our direct analysis confirms this. The discrete points are $x=0$ and $x=2$, each with probability $1/4$.
+\end{itemize} % *** This closes the itemize environment ***
+
+The total discrete probability is $\Prob(X=0) + \Prob(X=2) = 1/4 + 1/4 = 1/2$.
+The remaining $1/2$ probability must be distributed continuously.
+
+Let's find the PDF for the continuous part, $f_c(x)$. This is the derivative of the CDF where it's differentiable and continuous.
+$f_c(x) = \frac{d}{dx} F_X(x) = \frac{d}{dx} (\frac{1}{4} + \frac{x-1}{2}) = \frac{1}{2}$ for $1 \le x < 2$.
+Elsewhere, the derivative is 0.
+Let's check the total probability: $\Prob(X=0) + \Prob(X=2) + \int_1^2 f_c(x) \dee x = \frac{1}{4} + \frac{1}{4} + \int_1^2 \frac{1}{2} \dee x = \frac{1}{2} + [\frac{1}{2}x]_1^2 = \frac{1}{2} + (\frac{2}{2} - \frac{1}{2}) = \frac{1}{2} + \frac{1}{2} = 1$. This is consistent.
+
+\textbf{Step 2: Calculate Expectation}
+Using the combined formula:
+\begin{align*} \E[X] &= \sum_{x \in \{0, 2\}} x \Prob(X=x) + \int_1^2 x f_c(x) \dee x \\ &= (0 \times \frac{1}{4}) + (2 \times \frac{1}{4}) + \int_1^2 x \left(\frac{1}{2}\right) \dee x \\ &= 0 + \frac{1}{2} + \frac{1}{2} \int_1^2 x \dee x \\ &= \frac{1}{2} + \frac{1}{2} \left[\frac{x^2}{2}\right]_1^2 \\ &= \frac{1}{2} + \frac{1}{2} \left(\frac{4}{2} - \frac{1}{2}\right) \\ &= \frac{1}{2} + \frac{1}{2} \left(\frac{3}{2}\right) = \frac{1}{2} + \frac{3}{4} = \frac{5}{4} \end{align*}
+
+\textbf{Step 3: Calculate $\E[X^2]$}
+\begin{align*} \E[X^2] &= \sum_{x \in \{0, 2\}} x^2 \Prob(X=x) + \int_1^2 x^2 f_c(x) \dee x \\ &= (0^2 \times \frac{1}{4}) + (2^2 \times \frac{1}{4}) + \int_1^2 x^2 \left(\frac{1}{2}\right) \dee x \\ &= 0 + (4 \times \frac{1}{4}) + \frac{1}{2} \int_1^2 x^2 \dee x \\ &= 1 + \frac{1}{2} \left[\frac{x^3}{3}\right]_1^2 \\ &= 1 + \frac{1}{2} \left(\frac{8}{3} - \frac{1}{3}\right) \\ &= 1 + \frac{1}{2} \left(\frac{7}{3}\right) = 1 + \frac{7}{6} = \frac{13}{6} \end{align*}
+
+\textbf{Step 4: Calculate Variance}
+\begin{align*} \Var(X) &= \E[X^2] - (\E[X])^2 \\ &= \frac{13}{6} - \left(\frac{5}{4}\right)^2 \\ &= \frac{13}{6} - \frac{25}{16} \\ &= \frac{13 \times 8 - 25 \times 3}{48} \\ &= \frac{104 - 75}{48} = \frac{29}{48} \end{align*}
+\end{example} % *** This closes the first example ***
+
+\section{Expectation and Variance for Specific Distributions}
+
+Often, we work with named distributions. If we know the distribution, we might have standard formulas for expectation and variance. However, sometimes subtle details, like the support of the distribution, require attention.
+
+\begin{example}[Geometric Distribution Starting at 0] \label{ex:geom}
+In Exercise 1, we encountered a random variable $Y$ representing the number of failures *before* the first success in a sequence of Bernoulli trials. We found $Y$ follows a Geometric distribution, but its support is $k \in \{0, 1, 2, \dots\}$. The PMF is $\Prob(Y=k) = (1-p)^k p = q^k p$, where $p$ is the success probability and $q=1-p$.
+
+Many standard formula sheets provide the expectation and variance for a Geometric random variable $Y'$ whose support is $\{1, 2, 3, \dots\}$ (number of trials *until* the first success). For such $Y'$, $\E[Y'] = 1/p$ and $\Var(Y') = q/p^2$.
+
+How do we find $\E[Y]$ and $\Var(Y)$ for our variable starting at 0?
+
+\textbf{The Trick: Transformation}
+Notice that $Y' = Y + 1$. If $Y$ is the number of failures *before* the first success, then $Y+1$ is the total number of trials *until* the first success.
+So, $Y'$ has the standard support $\{1, 2, 3, \dots\}$.
+
+We can use the properties of expectation and variance:
+\begin{itemize}
+    \item $\E[Y'] = \E[Y+1] = \E[Y] + 1$.
+    \item $\Var(Y') = \Var(Y+1) = \Var(Y)$ (adding a constant doesn't change variance).
+\end{itemize}
+Now we solve for $\E[Y]$ and $\Var(Y)$:
+\begin{itemize}
+    \item $\E[Y] = \E[Y'] - 1 = \frac{1}{p} - 1 = \frac{1-p}{p} = \frac{q}{p}$.
+    \item $\Var(Y) = \Var(Y') = \frac{q}{p^2}$.
+\end{itemize}
+
+\begin{instructorcomment}
+This transformation $Y' = Y+1$ is a neat way to adapt formulas from one convention (support starting at 1) to another (support starting at 0). Always pay attention to the support when using standard formulas! In the transcript, the parameter $p$ was related to $\lambda$, likely $p = 1 - e^{-\lambda}$ or similar from a Poisson process context in Exercise 1. The calculation used 'p' abstractly here, matching the $p$ from the $Y \sim Geom(p)$ identification.
+\end{instructorcomment}
+\end{example}
+
+\begin{example}[Piecewise CDF with Atom] \label{ex:piecewise_atom}
+Consider a random variable $Z$ with the CDF:
+\[ F_Z(z) = \begin{cases} 0 & z < 0 \\ \frac{1}{2} & z = 0 \\ \frac{1}{2} + \frac{1}{2}(1 - e^{-z^2/2}) & 0 < z < \sqrt{2 \ln 2} \\ (?) & \text{This needs clarification based on transcript/problem} \end{cases} \]
+*Instructor Note:* The exact definition of $F_Z(z)$ and the PDF $f_Z(z)$ seems slightly ambiguous or possibly misstated across the two versions of the transcript, particularly concerning the range and the function involving $e$. The calculation shown focuses on an integral from 1 to 2. Let's assume the relevant PDF for calculation was determined (perhaps from Exercise 1) to be effectively $f_Z(z) = z e^{-z^2/2}$ for $1 \le z \le 2$, possibly scaled, and an atom at $z=0$. The transcript calculation implies $\Prob(Z=0)$ might be $1/2$, but the integral calculation for $E[Z]$ seems to ignore the sum part. Let's follow the calculation path shown for $E[Z^2]$ which uses integration by parts over $[1, 2]$. Assuming the *continuous part* of the density relevant for the calculation shown is $f_c(z) = c \cdot z e^{-z^2/2}$ over some interval, and the calculation performed was $\int_1^2 z \cdot f_c(z) \dee z$ for $E[Z]$ and $\int_1^2 z^2 \cdot f_c(z) \dee z$ for $E[Z^2]$.
+
+Let's assume, for illustration based on the calculation steps shown, the effective continuous density part for the expectation/variance calculation was $f_c(x) = \frac{e^{-x/2}}{N}$ on $[1, 2]$ where $N = \int_1^2 e^{-x/2} dx = [-2e^{-x/2}]_1^2 = -2e^{-1} - (-2e^{-1/2}) = 2e^{-1/2} - 2e^{-1}$. Also assume $\Prob(Z=0)=0$ for the calculation path shown in the transcript for the expectation integral.
+
+\textbf{Calculating $\E[Z]$ (based on transcript's integral)}
+\[ \E[Z] = \int_1^2 x f_c(x) \dee x = \int_1^2 x \frac{e^{-x/2}}{2e^{-1/2}-2e^{-1}} \dee x \]
+Use integration by parts: $u=x, \dee v = e^{-x/2} \dee x \implies \dee u = \dee x, v = -2e^{-x/2}$.
+\begin{align*} \int_1^2 x e^{-x/2} \dee x &= [-2xe^{-x/2}]_1^2 - \int_1^2 (-2e^{-x/2}) \dee x \\ &= (-4e^{-1}) - (-2e^{-1/2}) + 2 \int_1^2 e^{-x/2} \dee x \\ &= 2e^{-1/2} - 4e^{-1} + 2 [-2e^{-x/2}]_1^2 \\ &= 2e^{-1/2} - 4e^{-1} + 2 ((-2e^{-1}) - (-2e^{-1/2})) \\ &= 2e^{-1/2} - 4e^{-1} - 4e^{-1} + 4e^{-1/2} \\ &= 6e^{-1/2} - 8e^{-1} \end{align*}
+So, $\E[Z] = \frac{6e^{-1/2} - 8e^{-1}}{2e^{-1/2}-2e^{-1}} = \frac{3e^{-1/2} - 4e^{-1}}{e^{-1/2}-e^{-1}}$.
+
+\textbf{Calculating $\E[Z^2]$ (based on transcript mentioning parts twice)}
+Assuming the same density $f_c(x)$ on $[1, 2]$. Let $N=2e^{-1/2}-2e^{-1}$.
+\[ \E[Z^2] = \frac{1}{N} \int_1^2 x^2 e^{-x/2} \dee x \]
+Integration by parts ($u=x^2, \dee v = e^{-x/2} \dee x \implies \dee u = 2x \dee x, v = -2e^{-x/2}$):
+\[ \int_1^2 x^2 e^{-x/2} \dee x = [-2x^2e^{-x/2}]_1^2 - \int_1^2 (-2e^{-x/2})(2x \dee x) = [-2x^2e^{-x/2}]_1^2 + 4 \int_1^2 x e^{-x/2} \dee x \]
+We already calculated $\int_1^2 x e^{-x/2} \dee x = 6e^{-1/2} - 8e^{-1}$.
+\[ [-2x^2e^{-x/2}]_1^2 = (-2(4)e^{-1}) - (-2(1)e^{-1/2}) = -8e^{-1} + 2e^{-1/2} \]
+So, $\int_1^2 x^2 e^{-x/2} \dee x = (-8e^{-1} + 2e^{-1/2}) + 4 (6e^{-1/2} - 8e^{-1})$
+\[ = -8e^{-1} + 2e^{-1/2} + 24e^{-1/2} - 32e^{-1} = 26e^{-1/2} - 40e^{-1} \]
+And $\E[Z^2] = \frac{26e^{-1/2} - 40e^{-1}}{N} = \frac{13e^{-1/2} - 20e^{-1}}{e^{-1/2}-e^{-1}}$.
+Then $\Var(Z) = \E[Z^2] - (\E[Z])^2$.
+
+\begin{instructorcomment}
+The specific function and interval seemed unclear from the transcript, but the process involves identifying the correct PDF $f_c(z)$ for the continuous part, potentially an atom probability $\Prob(Z=0)$, and then applying the expectation formulas, possibly requiring techniques like integration by parts. A student in the transcript asked about recognizing this as exponential, but the instructor noted this was the 'long way' (integration), implying a shortcut might exist if the function form was different or normalized appropriately. If $f(z)$ resembled $\lambda e^{-\lambda z}$, integrating $z \cdot \lambda e^{-\lambda z}$ over the support $[0, \infty)$ directly gives the mean $1/\lambda$. Here, the interval is restricted, and the function form used in the calculation ($e^{-x/2}$) requires explicit integration.
+\end{instructorcomment}
+\end{example}
+
+\begin{example}[Exponential-Related Calculation Trick] \label{ex:exp_trick}
+Let $W$ be a random variable with PDF $f_W(w) = \frac{1}{\beta} e^{-w/\beta}$ for $w \ge 0$ (i.e., $W \sim Exp(\lambda=1/\beta)$). We know $\E[W] = \beta$.
+
+Now, suppose we need to calculate $E[W]$ from a slightly different setup, as perhaps arose in Exercise 1, Section 3. Imagine we found the density function for a variable $V$ was $f_V(v) = \frac{1}{\theta} e^{-v/\theta}$ for $v \ge 0$. (This is just $Exp(1/\theta)$).
+We want to compute $\E[V] = \int_0^\infty v \cdot \frac{1}{\theta} e^{-v/\theta} \dee v$.
+
+Instead of performing integration by parts, we can recognize the structure.
+Let $\lambda = 1/\theta$. The integral is $\int_0^\infty v \lambda e^{-\lambda v} \dee v$.
+This is precisely the definition of the expectation for an $Exp(\lambda)$ random variable. We know from standard results that $\E[V] = 1/\lambda$.
+Substituting back $\lambda = 1/\theta$, we get $\E[V] = 1/(1/\theta) = \theta$.
+
+The transcript mentioned a calculation involving $\int_0^\infty t \cdot (\frac{1}{p} e^{-t/p}) \dee t$ (adjusting variables $w \to t, \beta \to p$). This integral is exactly the expectation of an $Exp(1/p)$ variable, which equals $p$.
+
+\textbf{Important Caveat:} % Close the bold command here
+This recognition trick works when:
+\begin{enumerate} % Use enumerate for numbered list
+    \item The function inside the integral matches the form $x \times (\text{PDF of a known distribution})$.
+    \item The limits of integration match the support of that known distribution.
+\end{enumerate} % Close the list environment
+
+If, for example, the limits were different, or if there was an extra factor, we couldn't directly state the result is the expectation and would need to compute the integral (perhaps still using integration by parts or other techniques). The transcript emphasizes this: if we wanted to compute $\E[\text{weight} \times V]$ or similar, the simple recognition wouldn't apply directly.
+
+Calculating $\E[V^2]$: $\E[V^2] = \int_0^\infty v^2 \lambda e^{-\lambda v} \dee v$. This is the second moment of $Exp(\lambda)$. We know $\Var(V) = 1/\lambda^2$. Since $\Var(V) = \E[V^2] - (\E[V])^2$, we have $\E[V^2] = \Var(V) + (\E[V])^2 = \frac{1}{\lambda^2} + (\frac{1}{\lambda})^2 = \frac{2}{\lambda^2}$. Substituting $\lambda=1/\theta$, $\E[V^2] = 2\theta^2$. Again, recognition saves integration by parts.
+\end{example}
+
+\section{The Beta Distribution}
+
+The Beta distribution is a versatile continuous distribution defined on the interval $[0, 1]$, often used to model probabilities or proportions.
+
+\begin{definition}[Beta Distribution]
+A random variable $X$ follows a Beta distribution with parameters $\alpha > 0$ and $\beta > 0$, denoted $X \sim Beta(\alpha, \beta)$, if its PDF is:
+\[ f_X(x; \alpha, \beta) = \frac{1}{\BetaFunc(\alpha, \beta)} x^{\alpha-1} (1-x)^{\beta-1}, \quad \text{for } 0 \le x \le 1 \]
+where $\BetaFunc(\alpha, \beta)$ is the Beta function, defined as:
+\[ \BetaFunc(\alpha, \beta) = \int_0^1 t^{\alpha-1} (1-t)^{\beta-1} \dee t \]
+The Beta function is related to the Gamma function $\Gamma(z) = \int_0^\infty t^{z-1} e^{-t} \dee t$ by:
+\[ \BetaFunc(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)} \]
+Recall that for integers $n$, $\Gamma(n) = (n-1)!$. Also, a key property is $\Gamma(z+1) = z\Gamma(z)$.
+\end{definition}
+
+\begin{example}[Beta(1,1) is Uniform(0,1)] \label{ex:beta_uniform}
+Let's show that the $Beta(1, 1)$ distribution is simply the standard Uniform distribution on $[0, 1]$.
+We need $\alpha=1$ and $\beta=1$.
+First, calculate the normalizing constant $\BetaFunc(1, 1)$:
+\[ \BetaFunc(1, 1) = \frac{\Gamma(1)\Gamma(1)}{\Gamma(1+1)} = \frac{\Gamma(1)\Gamma(1)}{\Gamma(2)} = \frac{0! \cdot 0!}{1!} = \frac{1 \times 1}{1} = 1 \]
+Now substitute into the PDF formula:
+\[ f_X(x; 1, 1) = \frac{1}{\BetaFunc(1, 1)} x^{1-1} (1-x)^{1-1} = \frac{1}{1} x^0 (1-x)^0 = 1 \times 1 \times 1 = 1 \]
+This is for $0 \le x \le 1$. The PDF $f_X(x) = 1$ for $x \in [0, 1]$ is exactly the PDF of the $Uniform(0, 1)$ distribution.
+\end{example}
+
+\begin{example}[Moments of the Beta Distribution] \label{ex:beta_moments}
+Let $X \sim Beta(\alpha, \beta)$. Let's calculate the $k$-th moment, $\E[X^k]$.
+\begin{align*} \E[X^k] &= \int_0^1 x^k f_X(x; \alpha, \beta) \dee x \\ &= \int_0^1 x^k \frac{1}{\BetaFunc(\alpha, \beta)} x^{\alpha-1} (1-x)^{\beta-1} \dee x \\ &= \frac{1}{\BetaFunc(\alpha, \beta)} \int_0^1 x^{k+\alpha-1} (1-x)^{\beta-1} \dee x \end{align*}
+Now, look closely at the integral: $\int_0^1 x^{(k+\alpha)-1} (1-x)^{\beta-1} \dee x$. This is exactly the definition of the Beta function $\BetaFunc(k+\alpha, \beta)$!
+
+\begin{instructorcomment}
+This is a beautiful trick! Instead of trying to compute the integral directly, we recognize its form. The integral is the normalizing constant for a $Beta(k+\alpha, \beta)$ distribution (multiplied by $B(k+\alpha, \beta)$). Since the integral of any PDF over its support is 1, we have $\int_0^1 \frac{1}{B(k+\alpha, \beta)} x^{(k+\alpha)-1} (1-x)^{\beta-1} \dee x = 1$, which implies $\int_0^1 x^{(k+\alpha)-1} (1-x)^{\beta-1} \dee x = B(k+\alpha, \beta)$. This saves a lot of work.
+\end{instructorcomment}
+
+So, we have:
+\[ \E[X^k] = \frac{1}{\BetaFunc(\alpha, \beta)} \times \BetaFunc(k+\alpha, \beta) \]
+Now, let's express this using Gamma functions:
+\[ \E[X^k] = \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} \times \frac{\Gamma(k+\alpha)\Gamma(\beta)}{\Gamma(k+\alpha+\beta)} = \frac{\Gamma(\alpha+k)\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(k+\alpha+\beta)} \]
+
+Let's find the expectation ($k=1$) and the second moment ($k=2$).
+\textbf{Expectation ($k=1$):}
+\[ \E[X] = \frac{\Gamma(\alpha+1)\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\alpha+1+\beta)} \]
+Using $\Gamma(z+1) = z\Gamma(z)$:
+$\Gamma(\alpha+1) = \alpha\Gamma(\alpha)$
+$\Gamma(\alpha+1+\beta) = \Gamma((\alpha+\beta)+1) = (\alpha+\beta)\Gamma(\alpha+\beta)$
+Substituting these in:
+\[ \E[X] = \frac{\alpha\Gamma(\alpha)\Gamma(\alpha+\beta)}{\Gamma(\alpha)(\alpha+\beta)\Gamma(\alpha+\beta)} = \frac{\alpha}{\alpha+\beta} \]
+
+\textbf{Second Moment ($k=2$):}
+\[ \E[X^2] = \frac{\Gamma(\alpha+2)\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\alpha+2+\beta)} \]
+Using $\Gamma(z+1) = z\Gamma(z)$ repeatedly:
+$\Gamma(\alpha+2) = (\alpha+1)\Gamma(\alpha+1) = (\alpha+1)\alpha\Gamma(\alpha)$
+$\Gamma(\alpha+2+\beta) = \Gamma((\alpha+\beta+1)+1) = (\alpha+\beta+1)\Gamma(\alpha+\beta+1) = (\alpha+\beta+1)(\alpha+\beta)\Gamma(\alpha+\beta)$
+Substituting these in:
+\[ \E[X^2] = \frac{(\alpha+1)\alpha\Gamma(\alpha)\Gamma(\alpha+\beta)}{\Gamma(\alpha)(\alpha+\beta+1)(\alpha+\beta)\Gamma(\alpha+\beta)} = \frac{\alpha(\alpha+1)}{(\alpha+\beta)(\alpha+\beta+1)} \]
+
+\textbf{Variance:}
+\begin{align*} \Var(X) &= \E[X^2] - (\E[X])^2 \\ &= \frac{\alpha(\alpha+1)}{(\alpha+\beta)(\alpha+\beta+1)} - \left(\frac{\alpha}{\alpha+\beta}\right)^2 \\ &= \frac{\alpha(\alpha+1)(\alpha+\beta) - \alpha^2(\alpha+\beta+1)}{(\alpha+\beta)^2(\alpha+\beta+1)} \\ &= \frac{\alpha[(\alpha+1)(\alpha+\beta) - \alpha(\alpha+\beta+1)]}{(\alpha+\beta)^2(\alpha+\beta+1)} \\ &= \frac{\alpha[\alpha^2+\alpha\beta+\alpha+\beta - \alpha^2-\alpha\beta-\alpha]}{(\alpha+\beta)^2(\alpha+\beta+1)} \\ &= \frac{\alpha[\beta]}{(\alpha+\beta)^2(\alpha+\beta+1)} \\ &= \frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)} \end{align*}
+
+\begin{instructorcomment}
+It's good practice, especially in exams or assignments unless told otherwise, to simplify results like these using the Gamma function properties, rather than leaving them in terms of Beta or Gamma functions with '+1' or '+2'.
+\end{instructorcomment}
+\end{example}
+
+\begin{example}[Transformation of a Beta Variable] \label{ex:beta_transform}
+Let $X \sim Beta(\alpha, \beta)$. Consider the new random variable $Y = 1 - X$. What is the distribution of $Y$?
+
+\textbf{Step 1: Determine the Support of Y}
+Since $X$ takes values in $[0, 1]$, $Y = 1 - X$ will also take values in $[0, 1]$.
+If $X=0$, $Y=1$. If $X=1$, $Y=0$. So the support is correct for a Beta distribution.
+
+\textbf{Step 2: Use the Method of Transformations (CDF Technique)}
+Let $F_Y(y)$ be the CDF of $Y$ and $F_X(x)$ be the CDF of $X$.
+For $y \in [0, 1]$:
+\begin{align*} F_Y(y) &= \Prob(Y \le y) \\ &= \Prob(1 - X \le y) \\ &= \Prob(-X \le y - 1) \\ &= \Prob(X \ge 1 - y) \quad \text{(multiplied by -1, flipped inequality)} \\ &= 1 - \Prob(X < 1 - y) \\ &= 1 - \Prob(X \le 1 - y) \quad \text{(since X is continuous)} \\ &= 1 - F_X(1 - y) \end{align*}
+\textbf{Step 3: Find the PDF of Y}
+The PDF $f_Y(y)$ is the derivative of the CDF $F_Y(y)$.
+\[ f_Y(y) = \frac{d}{dy} F_Y(y) = \frac{d}{dy} [1 - F_X(1 - y)] \]
+Using the chain rule:
+\[ f_Y(y) = 0 - f_X(1 - y) \times \frac{d}{dy}(1 - y) = - f_X(1 - y) \times (-1) = f_X(1 - y) \]
+\textbf{Step 4: Substitute and Identify the Distribution}
+Now substitute $x = 1-y$ into the PDF of $X \sim Beta(\alpha, \beta)$:
+\begin{align*} f_Y(y) &= f_X(1-y; \alpha, \beta) \\ &= \frac{1}{\BetaFunc(\alpha, \beta)} (1-y)^{\alpha-1} (1 - (1-y))^{\beta-1} \\ &= \frac{1}{\BetaFunc(\alpha, \beta)} (1-y)^{\alpha-1} y^{\beta-1} \end{align*}
+This is valid for $y \in [0, 1]$.
+Recall that $\BetaFunc(\alpha, \beta) = \BetaFunc(\beta, \alpha)$. So we can write:
+\[ f_Y(y) = \frac{1}{\BetaFunc(\beta, \alpha)} y^{\beta-1} (1-y)^{\alpha-1} \]
+This is exactly the PDF of a $Beta(\beta, \alpha)$ distribution!
+
+So, if $X \sim Beta(\alpha, \beta)$, then $Y = 1 - X \sim Beta(\beta, \alpha)$. The parameters are swapped.
+
+\begin{instructorcomment}
+The CDF method is quite general for finding the distribution of a transformed variable. The key steps are finding the CDF of the new variable ($Y$) in terms of the CDF of the old variable ($X$), and then differentiating to get the PDF of $Y$. It was important here to correctly manipulate the inequality when isolating $X$.
+\end{instructorcomment}
+\end{example}
+
+\section{Properties of Moments}
+
+Moments don't just describe individual variables; they also interact in interesting ways when we combine variables.
+
+\begin{proposition}[Finiteness of Second Moment for Sums] \label{prop:finite_moment_sum}
+Let $X$ and $Y$ be random variables such that their second moments are finite, i.e., $\E[X^2] < \infty$ and $\E[Y^2] < \infty$. Then the second moment of their sum, $X+Y$, is also finite, i.e., $\E[(X+Y)^2] < \infty$.
+\end{proposition}
+
+\begin{proof}
+We want to show $\E[(X+Y)^2]$ is finite. Let's expand the term inside the expectation:
+\[ (X+Y)^2 = X^2 + 2XY + Y^2 \]
+By the linearity of expectation:
+\[ \E[(X+Y)^2] = \E[X^2 + 2XY + Y^2] = \E[X^2] + 2\E[XY] + \E[Y^2] \]
+We are given that $\E[X^2]$ and $\E[Y^2]$ are finite. To show that $\E[(X+Y)^2]$ is finite, we only need to show that $\E[XY]$ is finite.
+
+We can use the inequality hint provided (which stems from $(|u|-|v|)^2 \ge 0$ or AM-GM): $|uv| \le \frac{u^2+v^2}{2}$.
+Applying this to our random variables $X$ and $Y$:
+\[ |XY| \le \frac{X^2+Y^2}{2} \]
+Now, take the expectation of both sides. Since expectation preserves non-negativity and inequality:
+\[ \E[|XY|] \le \E\left[\frac{X^2+Y^2}{2}\right] \]
+By linearity of expectation:
+\[ \E[|XY|] \le \frac{1}{2} (\E[X^2] + \E[Y^2]) \]
+Since $\E[X^2]$ and $\E[Y^2]$ are finite by assumption, their sum is finite, and half of their sum is also finite. Thus, $\E[|XY|] < \infty$.
+
+Now, we know that $|\E[XY]| \le \E[|XY|]$. Since $\E[|XY|]$ is finite, $\E[XY]$ must also be finite.
+
+Therefore, $\E[(X+Y)^2] = \E[X^2] + 2\E[XY] + \E[Y^2]$ is a sum of three finite terms, and hence it is finite.
+\end{proof}
+
+\begin{remark}
+The condition $\E[X^2] < \infty$ automatically implies that $\E[|X|] < \infty$ (and thus $\E[X]$ is finite). This is related to Jensen's inequality or by considering the parts where $|X| \le 1$ and $|X|>1$. However, knowing $\E[X]$ is finite does *not* guarantee $\E[X^2]$ is finite (e.g., consider a Cauchy distribution). The proposition specifically requires finite *second* moments for $X$ and $Y$.
+\end{remark}
+
+%=====================================================
+% End of Mathematical Content
+%=====================================================
+
+\end{document}
