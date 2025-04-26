@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Jensen's Inequality</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better slider appearance */
+        input[type=range] {
+            -webkit-appearance: none; /* Override default look */
+            appearance: none;
+            width: 100%; /* Full-width */
+            height: 8px; /* Specified height */
+            background: #555; /* Dark background */
+            outline: none; /* Remove outline */
+            opacity: 0.7; /* Slightly transparent */
+            transition: opacity .2s;
+            border-radius: 4px;
+        }
+
+        input[type=range]:hover {
+            opacity: 1; /* Fully opaque on hover */
+        }
+
+        /* Thumb styles for WebKit browsers (Chrome, Safari, Edge) */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; /* Override default look */
+            appearance: none;
+            width: 18px; /* Set a specific slider handle width */
+            height: 18px; /* Slider handle height */
+            background: #4CAF50; /* Green background */
+            cursor: pointer; /* Cursor on hover */
+            border-radius: 50%; /* Circular thumb */
+        }
+
+        /* Thumb styles for Firefox */
+        input[type=range]::-moz-range-thumb {
+            width: 18px; /* Set a specific slider handle width */
+            height: 18px; /* Slider handle height */
+            background: #4CAF50; /* Green background */
+            cursor: pointer; /* Cursor on hover */
+            border-radius: 50%; /* Circular thumb */
+            border: none; /* Remove Firefox default border */
+        }
+         /* Ensure canvas is responsive */
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto; /* Maintain aspect ratio based on width */
+            max-height: 60vh; /* Prevent canvas from becoming too tall */
+            background-color: #000; /* Black background for the canvas */
+        }
+        /* Style for value displays */
+        .value-display {
+            min-width: 60px; /* Ensure consistent width */
+            display: inline-block;
+            text-align: right;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans p-4 md:p-8">
+
+    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-center text-green-400">Interactive Jensen's Inequality</h1>
+
+    <div class="flex flex-col md:flex-row gap-6 md:gap-8">
+
+        <div class="flex-grow md:w-2/3 border border-gray-700 rounded-lg overflow-hidden">
+            <canvas id="jensenCanvas"></canvas>
+        </div>
+
+        <div class="md:w-1/3 space-y-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+
+            <div class="space-y-4">
+                <h2 class="text-xl font-semibold border-b border-gray-600 pb-2 text-green-300">Controls</h2>
+                <div>
+                    <label for="curvatureSlider" class="block mb-1 text-sm font-medium">Function Curvature (<span id="curvatureValue">0.10</span>):</label>
+                    <input type="range" id="curvatureSlider" min="-0.5" max="0.5" step="0.01" value="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>Concave</span>
+                        <span>Linear</span>
+                        <span>Convex</span>
+                    </div>
+                </div>
+                 <div>
+                    <label for="varianceSlider" class="block mb-1 text-sm font-medium">Sample Spread (Variance) (<span id="varianceValue">1.0</span>):</label>
+                    <input type="range" id="varianceSlider" min="0.1" max="5" step="0.1" value="1.0" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                </div>
+                 <div>
+                    <label for="samplesSlider" class="block mb-1 text-sm font-medium">Number of Samples (<span id="samplesValue">50</span>):</label>
+                    <input type="range" id="samplesSlider" min="5" max="200" step="5" value="50" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                 <h2 class="text-xl font-semibold border-b border-gray-600 pb-2 text-green-300">Calculated Values</h2>
+                 <p class="text-sm">Mean of Samples E[X]: <span id="meanX" class="font-mono text-yellow-400 value-display">0.00</span></p>
+                 <p class="text-sm">Function at Mean f(E[X]): <span id="funcOfMeanX" class="font-mono text-red-500 value-display">0.00</span></p>
+                 <p class="text-sm">Mean of Function E[f(X)]: <span id="meanFuncX" class="font-mono text-green-500 value-display">0.00</span></p>
+                 <p class="text-sm">Difference E[f(X)] - f(E[X]): <span id="difference" class="font-mono text-blue-400 value-display">0.00</span></p>
+                 <p class="text-sm">Inequality Holds: <span id="inequalityHolds" class="font-bold">---</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Canvas and Context Setup ---
+        const CONSTANT = 3; // Constant to adjust the function's base level for better visibility
+        const canvas = document.getElementById('jensenCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- DOM Element References ---
+        const curvatureSlider = document.getElementById('curvatureSlider');
+        const varianceSlider = document.getElementById('varianceSlider');
+        const samplesSlider = document.getElementById('samplesSlider');
+        const curvatureValueSpan = document.getElementById('curvatureValue');
+        const varianceValueSpan = document.getElementById('varianceValue');
+        const samplesValueSpan = document.getElementById('samplesValue');
+        const meanXSpan = document.getElementById('meanX');
+        const funcOfMeanXSpan = document.getElementById('funcOfMeanX');
+        const meanFuncXSpan = document.getElementById('meanFuncX');
+        const differenceSpan = document.getElementById('difference');
+        const inequalityHoldsSpan = document.getElementById('inequalityHolds');
+
+        // --- Configuration & State ---
+        const config = {
+            xMin: 0,
+            xMax: 10,
+            yMin: 0,
+            yMax: 10,
+            padding: 40, // Padding around the graph area
+            numXTicks: 11,
+            numYTicks: 11,
+            colors: {
+                background: '#000000', // Black background
+                axes: '#CCCCCC',       // Light gray axes
+                grid: '#444444',       // Dark gray grid
+                functionCurve: '#3b82f6', // Light Blue (Tailwind blue-500)
+                samples: '#facc15',    // Yellow (Tailwind yellow-400)
+                meanXMarker: '#ef4444', // Red (Tailwind red-500)
+                funcOfMeanLine: '#f97316', // Orange-Red (Tailwind orange-500)
+                meanFuncLine: '#22c55e',   // Green (Tailwind green-500)
+                gapHighlight: 'rgba(59, 130, 246, 0.3)', // Semi-transparent blue
+                text: '#E5E7EB'        // Light Gray text (Tailwind gray-200)
+            },
+            baseMean: 5 // Center point for sample generation
+        };
+
+        let state = {
+            curvature: 0.1, // Controls the 'a' in ax^2 + bx + c (b and c adjusted for shape)
+            variance: 1.0,
+            numSamples: 50,
+            samplesX: [],
+            outputsY: [],
+            meanX: 0,
+            funcOfMeanX: 0,
+            meanFuncX: 0
+        };
+
+        // --- Utility Functions ---
+        function mapRange(value, inMin, inMax, outMin, outMax) {
+            return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+        }
+
+        // Map data coordinates to canvas pixel coordinates
+        function mapX(x) {
+            return mapRange(x, config.xMin, config.xMax, config.padding, canvas.width - config.padding);
+        }
+        function mapY(y) {
+            // Y is inverted in canvas (0 is top)
+            return mapRange(y, config.yMin, config.yMax, canvas.height - config.padding, config.padding);
+        }
+         // Map canvas pixel coordinates back to data coordinates
+        function unmapX(px) {
+             return mapRange(px, config.padding, canvas.width - config.padding, config.xMin, config.xMax);
+        }
+        function unmapY(py) {
+             return mapRange(py, canvas.height - config.padding, config.padding, config.yMin, config.yMax);
+        }
+
+
+        // --- Core Calculation Functions ---
+        function calculateMean(dataArray) {
+            if (dataArray.length === 0) return 0;
+            const sum = dataArray.reduce((acc, val) => acc + val, 0);
+            return sum / dataArray.length;
+        }
+
+        // Defines the function f(x) based on curvature
+        // Using a quadratic function: f(x) = curvature * (x - baseMean)^2 + linear_term + constant
+        // Adjusting linear term and constant to keep the function somewhat centered visually
+        function evaluateFunction(x, curvature) {
+            const baseCurvatureEffect = curvature * Math.pow(x - config.baseMean, 2);
+            // Add a small linear term to slightly tilt linear functions for visual clarity
+            const linearTerm = (curvature === 0 ? 0.01 : 0) * (x - config.baseMean);
+             // Adjust constant to keep the function base near y=1/2 for better visibility
+            const constant = CONSTANT;
+            let result = baseCurvatureEffect + linearTerm + constant;
+            // Clamp result to avoid extreme values going off-canvas easily
+            return Math.max(config.yMin, Math.min(config.yMax, result));
+        }
+
+        function generateSamples(count, mean, variance) {
+            const samples = [];
+            // Simple uniform distribution scaled by variance for spread
+            const halfRange = variance * 2; // Adjust multiplier as needed
+            const min = Math.max(config.xMin, mean - halfRange);
+            const max = Math.min(config.xMax, mean + halfRange);
+            for (let i = 0; i < count; i++) {
+                samples.push(Math.random() * (max - min) + min);
+            }
+            return samples;
+        }
+
+        // --- Drawing Functions ---
+        function drawAxesAndGrid(ctx) {
+            const width = canvas.width;
+            const height = canvas.height;
+            ctx.strokeStyle = config.colors.axes;
+            ctx.fillStyle = config.colors.text;
+            ctx.lineWidth = 1;
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Draw Grid Lines
+            ctx.strokeStyle = config.colors.grid;
+            ctx.lineWidth = 0.5;
+
+            // Vertical grid lines & X-axis labels
+            for (let i = 0; i < config.numXTicks; i++) {
+                const xData = config.xMin + i * (config.xMax - config.xMin) / (config.numXTicks - 1);
+                const xCanvas = mapX(xData);
+                ctx.beginPath();
+                ctx.moveTo(xCanvas, config.padding);
+                ctx.lineTo(xCanvas, height - config.padding);
+                ctx.stroke();
+                ctx.fillText(xData.toFixed(1), xCanvas, height - config.padding + 15);
+            }
+
+            // Horizontal grid lines & Y-axis labels
+            for (let i = 0; i < config.numYTicks; i++) {
+                const yData = config.yMin + i * (config.yMax - config.yMin) / (config.numYTicks - 1);
+                const yCanvas = mapY(yData);
+                ctx.beginPath();
+                ctx.moveTo(config.padding, yCanvas);
+                ctx.lineTo(width - config.padding, yCanvas);
+                ctx.stroke();
+                 ctx.textAlign = 'right';
+                ctx.fillText(yData.toFixed(1), config.padding - 8, yCanvas);
+                 ctx.textAlign = 'center'; // Reset alignment
+            }
+
+             // Draw main axes lines (slightly thicker)
+            ctx.strokeStyle = config.colors.axes;
+            ctx.lineWidth = 1.5;
+            // X Axis
+            ctx.beginPath();
+            ctx.moveTo(config.padding, height - config.padding);
+            ctx.lineTo(width - config.padding, height - config.padding);
+            ctx.stroke();
+             // Y Axis
+            ctx.beginPath();
+            ctx.moveTo(config.padding, config.padding);
+            ctx.lineTo(config.padding, height - config.padding);
+            ctx.stroke();
+
+            // Axis Labels
+            ctx.font = '12px sans-serif';
+            ctx.fillText('x', width / 2, height - config.padding + 30);
+            ctx.save();
+            ctx.translate(config.padding - 30, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('f(x)', 0, 0);
+            ctx.restore();
+        }
+
+        function drawFunctionCurve(ctx, curvature) {
+            ctx.strokeStyle = config.colors.functionCurve;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            const startX = mapX(config.xMin);
+            const startY = mapY(evaluateFunction(config.xMin, curvature));
+            ctx.moveTo(startX, startY);
+
+            const steps = 100; // Number of segments to draw the curve
+            for (let i = 1; i <= steps; i++) {
+                const xData = config.xMin + (i / steps) * (config.xMax - config.xMin);
+                const yData = evaluateFunction(xData, curvature);
+                ctx.lineTo(mapX(xData), mapY(yData));
+            }
+            ctx.stroke();
+        }
+
+        function drawSamples(ctx, samplesX, curvature) {
+            ctx.strokeStyle = config.colors.samples; // Yellow
+            ctx.lineWidth = 1;
+
+            // Draw vertical lines for each sample up to the function curve
+            samplesX.forEach(x => {
+                const y = evaluateFunction(x, curvature);
+                const xCanvas = mapX(x);
+                const yCanvasFunc = mapY(y);
+                const yCanvasBase = mapY(config.yMin); // Bottom of the graph
+
+                ctx.beginPath();
+                ctx.moveTo(xCanvas, yCanvasBase);
+                ctx.lineTo(xCanvas, yCanvasFunc);
+                ctx.stroke();
+            });
+        }
+
+        function drawExpectations(ctx, meanX, funcOfMeanX, meanFuncX) {
+             const yCanvasBase = mapY(config.yMin);
+
+            // Draw E[X] marker
+            const meanXCanvas = mapX(meanX);
+            ctx.strokeStyle = config.colors.meanXMarker; // Red
+            ctx.fillStyle = config.colors.meanXMarker;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(meanXCanvas, yCanvasBase);
+            ctx.lineTo(meanXCanvas, mapY(funcOfMeanX)); // Line up to f(E[X]) point
+            ctx.stroke();
+            // Label E[X]
+            ctx.fillStyle = config.colors.text;
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('E[X]', meanXCanvas, yCanvasBase + 15);
+
+            // Draw f(E[X]) line (horizontal)
+            const funcOfMeanYCanvas = mapY(funcOfMeanX);
+            ctx.strokeStyle = config.colors.funcOfMeanLine; // Orange-Red
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]); // Dashed line
+            ctx.beginPath();
+            ctx.moveTo(config.padding, funcOfMeanYCanvas);
+            ctx.lineTo(meanXCanvas, funcOfMeanYCanvas); // Line from Y axis to E[X]
+            ctx.stroke();
+             ctx.setLineDash([]); // Reset line dash
+
+            // Label f(E[X])
+            ctx.fillStyle = config.colors.funcOfMeanLine;
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('f(E[X])', config.padding + 5, funcOfMeanYCanvas - 8);
+
+
+            // Draw E[f(X)] line (horizontal)
+            const meanFuncYCanvas = mapY(meanFuncX);
+            ctx.strokeStyle = config.colors.meanFuncLine; // Green
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]); // Dashed line
+            ctx.beginPath();
+            ctx.moveTo(config.padding, meanFuncYCanvas);
+            ctx.lineTo(canvas.width - config.padding, meanFuncYCanvas); // Full width line
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset line dash
+
+             // Label E[f(X)]
+            ctx.fillStyle = config.colors.meanFuncLine;
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('E[f(X)]', config.padding + 5, meanFuncYCanvas - 8);
+
+             // Draw thin green lines from samples to E[f(X)] level (optional, can be noisy)
+            /*
+            ctx.strokeStyle = config.colors.meanFuncLine;
+            ctx.lineWidth = 0.5;
+            ctx.globalAlpha = 0.5; // Make them faint
+            state.samplesX.forEach((x, index) => {
+                const xCanvas = mapX(x);
+                const yCanvasSample = mapY(state.outputsY[index]);
+                ctx.beginPath();
+                ctx.moveTo(xCanvas, yCanvasSample);
+                ctx.lineTo(config.padding, meanFuncYCanvas); // Line towards the E[f(X)] axis label area
+                ctx.stroke();
+            });
+            ctx.globalAlpha = 1.0; // Reset alpha
+            */
+
+             // Draw Gap Highlight
+             if (Math.abs(meanFuncX - funcOfMeanX) > 0.01) { // Only draw if gap exists
+                 ctx.fillStyle = config.colors.gapHighlight;
+                 const gapTop = Math.min(meanFuncYCanvas, funcOfMeanYCanvas);
+                 const gapBottom = Math.max(meanFuncYCanvas, funcOfMeanYCanvas);
+                 ctx.fillRect(config.padding, gapTop, meanXCanvas - config.padding, gapBottom - gapTop);
+             }
+        }
+
+
+        // --- Main Update and Draw Function ---
+        function updateAndDraw() {
+            // 1. Update State from Controls
+            state.curvature = parseFloat(curvatureSlider.value);
+            state.variance = parseFloat(varianceSlider.value);
+            state.numSamples = parseInt(samplesSlider.value);
+
+            // Update displayed values for sliders
+            curvatureValueSpan.textContent = state.curvature.toFixed(2);
+            varianceValueSpan.textContent = state.variance.toFixed(1);
+            samplesValueSpan.textContent = state.numSamples;
+
+            // 2. Regenerate Samples
+            state.samplesX = generateSamples(state.numSamples, config.baseMean, state.variance);
+
+            // 3. Perform Calculations
+            state.meanX = calculateMean(state.samplesX);
+            state.outputsY = state.samplesX.map(x => evaluateFunction(x, state.curvature));
+            state.meanFuncX = calculateMean(state.outputsY);
+            state.funcOfMeanX = evaluateFunction(state.meanX, state.curvature);
+            const difference = state.meanFuncX - state.funcOfMeanX;
+
+            // 4. Update Numerical Output Displays
+            meanXSpan.textContent = state.meanX.toFixed(2);
+            funcOfMeanXSpan.textContent = state.funcOfMeanX.toFixed(2);
+            meanFuncXSpan.textContent = state.meanFuncX.toFixed(2);
+            differenceSpan.textContent = difference.toFixed(2);
+
+            // Determine if inequality holds based on curvature
+            const tolerance = 0.01; // Tolerance for near-zero curvature (linear)
+            if (state.curvature > tolerance) { // Convex
+                inequalityHoldsSpan.textContent = `E[f(X)] ≥ f(E[X]) ${difference >= -tolerance ? '✅' : '❌'}`;
+                inequalityHoldsSpan.className = difference >= -tolerance ? 'font-bold text-green-500' : 'font-bold text-red-500';
+            } else if (state.curvature < -tolerance) { // Concave
+                 inequalityHoldsSpan.textContent = `E[f(X)] ≤ f(E[X]) ${difference <= tolerance ? '✅' : '❌'}`;
+                 inequalityHoldsSpan.className = difference <= tolerance ? 'font-bold text-green-500' : 'font-bold text-red-500';
+            } else { // Linear (approx)
+                 inequalityHoldsSpan.textContent = `E[f(X)] ≈ f(E[X]) ${Math.abs(difference) < tolerance * 5 ? '✅' : '❌'}`; // Wider tolerance for linear
+                 inequalityHoldsSpan.className = Math.abs(difference) < tolerance * 5 ? 'font-bold text-blue-500' : 'font-bold text-red-500';
+            }
+
+
+            // 5. Clear and Redraw Canvas
+            ctx.fillStyle = config.colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawAxesAndGrid(ctx);
+            drawFunctionCurve(ctx, state.curvature);
+            drawSamples(ctx, state.samplesX, state.curvature); // Draw samples relative to the *current* function
+            drawExpectations(ctx, state.meanX, state.funcOfMeanX, state.meanFuncX);
+
+            // Request next frame if needed for continuous animation (not strictly necessary here unless dragging)
+            // requestAnimationFrame(updateAndDraw);
+        }
+
+        // --- Event Listeners ---
+        curvatureSlider.addEventListener('input', updateAndDraw);
+        varianceSlider.addEventListener('input', updateAndDraw);
+        samplesSlider.addEventListener('input', updateAndDraw);
+
+        // --- Initial Setup and Draw ---
+        function resizeCanvas() {
+            // Adjust canvas resolution to match its display size for sharp rendering
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            // Scale context to account for device pixel ratio
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+             // Redraw after resize
+             updateAndDraw();
+        }
+
+        // Resize canvas initially and on window resize
+        window.addEventListener('resize', resizeCanvas);
+
+
+        // Initial setup call
+         resizeCanvas(); // Set initial size and draw
+
+    </script>
+
+</body>
+</html>
