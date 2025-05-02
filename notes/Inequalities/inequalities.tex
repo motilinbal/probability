@@ -1,0 +1,530 @@
+\documentclass[11pt]{article}
+\usepackage[english]{babel} % Set language to English
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in} % Standard margins
+\usepackage{hyperref} % For clickable links
+
+% --- Theorem Environments ---
+% Consistent numbering within sections
+\newtheorem{theorem}{Theorem}[section] 
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition} % Added for flexibility
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% --- Custom Environment for Announcements ---
+% Creates a visually distinct block for administrative info
+\newenvironment{announcement}
+  {\par\medskip\noindent\begin{center}\rule{\linewidth}{0.4pt}\end{center}\par\medskip\noindent\textbf{Administrative Notes:}\begin{itemize}}
+  {\end{itemize}\par\medskip\noindent\begin{center}\rule{\linewidth}{0.4pt}\end{center}\medskip}
+
+% --- Math Operators ---
+% Standard definitions for common operators
+\DeclareMathOperator{\E}{\mathbb{E}} % Expectation
+\DeclareMathOperator{\Var}{\text{Var}} % Variance
+\DeclareMathOperator{\Prob}{\mathbb{P}} % Probability
+\newcommand{\R}{\mathbb{R}} % Real numbers
+\newcommand{\N}{\mathbb{N}} % Natural numbers
+\newcommand{\Indic}{I} % Indicator function (using I as in source)
+
+% --- Hyperref Setup ---
+% Make links look nice and handle potential breaks
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan, % Changed from blue for better distinction
+    pdfpagemode=UseNone, % Use default view, FullScreen can be jarring
+    breaklinks=true % Allow links to break across lines
+    }
+\urlstyle{same} % Use the same font as the text for URLs
+
+% --- Document Start ---
+\begin{document}
+
+\title{Lecture 4: Concentration Inequalities, Convexity, and Sampling}
+\author{Undergraduate Mathematics Educator} 
+\date{April 21, 2025} % Clean date
+\maketitle
+
+\begin{center}
+    \textit{Welcome back! Today, we'll delve into some powerful tools in probability theory: concentration inequalities, which tell us how likely random variables are to be close to their expected values, and the beautiful relationship between expectation and convex functions. We'll finish by discussing how we can actually generate random numbers following specific distributions, a crucial practical skill.}
+\end{center}
+
+\section{Concentration Inequalities (Section 1.4.1)}
+
+\subsection{Motivation: How Concentrated is a Random Variable?}
+
+Often in probability and its applications, we're interested not just in the average value (expectation) of a random variable, but also in how likely it is to deviate *far* from that average. Think about the average height of students in a class versus the likelihood of finding someone exceptionally tall or short. Concentration inequalities provide mathematical bounds on the probability of such deviations.
+
+In essence, they quantify how "concentrated" the distribution of a random variable is around a central value (like the mean or median). These inequalities are fundamental tools in:
+\begin{itemize}
+    \item \textbf{Probability Theory:} Understanding the behavior of sums and averages of random variables.
+    \item \textbf{Statistics:} Analyzing estimation errors and constructing confidence intervals.
+    \item \textbf{Data Science \& Machine Learning:} Analyzing probabilistic algorithms, bounding generalization errors in learning models.
+    \item \textbf{Computer Science:} Analyzing randomized algorithms.
+\end{itemize}
+
+Some key examples of concentration inequalities include:
+\begin{itemize}
+    \item \textbf{Markov's inequality:} A basic inequality for non-negative random variables, using only the expectation.
+    \item \textbf{Chebyshev's inequality:} Uses both the expectation and variance to provide a tighter bound than Markov's in many cases.
+    \item \textbf{Chernoff bounds:} Provide exponentially decreasing bounds for deviations of sums of independent (often Bernoulli) random variables from their mean. Typically much stronger than Markov or Chebyshev for sums.
+    \item \textbf{Hoeffding's inequality:} Similar to Chernoff bounds but applies to sums of bounded independent random variables.
+    \item \textbf{Azuma-Hoeffding inequality:} A powerful generalization of Hoeffding's inequality for martingales with bounded differences.
+\end{itemize}
+We'll start with the foundational ones: Markov's and Chebyshev's inequalities.
+
+\subsection{Markov's Inequality}
+
+This is often the first concentration inequality one encounters. It's remarkably simple, requiring only knowledge of the expectation and that the random variable is non-negative.
+
+\begin{theorem}[Markov's Inequality - Theorem 1.10]
+Let $X$ be a random variable such that $X \ge 0$. Then for any constant $x > 0$,
+\[
+\Prob(X \ge x) \le \frac{\E[X]}{x}
+\]
+\end{theorem}
+
+\begin{proof}
+The proof relies on a clever use of indicator functions and the definition of expectation. Let $X$ be a non-negative random variable and let $x > 0$.
+Consider the indicator function $\Indic_{\{X \ge x\}}$, which is 1 if $X \ge x$ and 0 otherwise.
+
+Since $X \ge 0$, we can write the expectation of $X$ using the law of total expectation, partitioning on the event $\{X \ge x\}$ and its complement:
+\[
+\E[X] = \E[X \cdot \Indic_{\{X \ge x\}}] + \E[X \cdot \Indic_{\{X < x\}}]
+\]
+Because $X \ge 0$ and the indicator function $\Indic_{\{X < x\}}$ is non-negative, the second term $\E[X \cdot \Indic_{\{X < x\}}] \ge 0$. Therefore,
+\[
+\E[X] \ge \E[X \cdot \Indic_{\{X \ge x\}}]
+\]
+Now, on the event $\{X \ge x\}$, the value of $X$ is at least $x$. Thus, $X \cdot \Indic_{\{X \ge x\}} \ge x \cdot \Indic_{\{X \ge x\}}$. Taking expectations (which preserves inequalities):
+\[
+\E[X \cdot \Indic_{\{X \ge x\}}] \ge \E[x \cdot \Indic_{\{X \ge x\}}]
+\]
+Since $x$ is a constant, we can pull it out of the expectation:
+\[
+\E[x \cdot \Indic_{\{X \ge x\}}] = x \cdot \E[\Indic_{\{X \ge x\}}]
+\]
+Recall that the expectation of an indicator function is the probability of the event it indicates: $\E[\Indic_{\{X \ge x\}}] = \Prob(X \ge x)$.
+
+Combining these steps, we have:
+\[
+\E[X] \ge \E[X \cdot \Indic_{\{X \ge x\}}] \ge \E[x \cdot \Indic_{\{X \ge x\}}] = x \cdot \Prob(X \ge x)
+\]
+So, $\E[X] \ge x \cdot \Prob(X \ge x)$. Since $x > 0$, we can rearrange to get the desired inequality:
+\[
+\Prob(X \ge x) \le \frac{\E[X]}{x}
+\]
+\end{proof}
+
+\begin{remark}
+Markov's inequality gives a bound on the "right tail" probability. It tells us that if the average value $\E[X]$ is small, then the probability of observing a very large value of $X$ must also be small.
+\end{remark}
+
+\begin{corollary}[Polynomial Tail Decay from Moments]
+Suppose $X$ is a random variable such that $\E[|X|^p] < \infty$ for some $p > 0$. Then the tail probability $\Prob(|X| \ge x)$ decays at least as fast as $x^{-p}$ as $x \to \infty$.
+\end{corollary}
+\begin{proof}
+Let $Y = |X|^p$. Since $p > 0$, $Y$ is a non-negative random variable. We can apply Markov's inequality to $Y$. For any $x > 0$:
+The event $\{|X| \ge x\}$ is equivalent to the event $\{|X|^p \ge x^p\}$ (since $z \mapsto z^p$ is increasing for $z \ge 0$ and $p>0$). This is the event $\{Y \ge x^p\}$.
+Applying Markov's inequality to $Y$ with the threshold $x^p > 0$:
+\[
+\Prob(|X| \ge x) = \Prob(Y \ge x^p) \le \frac{\E[Y]}{x^p} = \frac{\E[|X|^p]}{x^p}
+\]
+Thus, $\Prob(|X| \ge x) \le \frac{\E[|X|^p]}{x^p}$. Since $\E[|X|^p]$ is a finite constant, the probability decays at least like $1/x^p$.
+\end{proof}
+\begin{remark}
+This shows that the existence of higher moments implies faster decay of the tail probabilities. However, Markov's inequality often provides quite loose bounds in practice. Furthermore, it provides no direct bound on the "left tail" probability $\Prob(X \le x)$ (for $x < \E[X]$) using only $\E[X]$.
+\end{remark}
+
+\subsection{Chebyshev's Inequality}
+
+If we know not only the mean but also the variance of a random variable, we can obtain a generally tighter bound on deviations from the mean using Chebyshev's inequality. It bounds the probability of being far from the mean in *either* direction.
+
+\begin{theorem}[Chebyshev's Inequality]
+Let $X$ be a random variable with finite mean $\mu = \E[X]$ and finite variance $\sigma^2 = \Var(X) = \E[(X-\mu)^2]$. Then for any constant $k > 0$,
+\[
+\Prob(|X - \mu| \ge k) \le \frac{\Var(X)}{k^2} = \frac{\sigma^2}{k^2}
+\]
+Equivalently, letting $k = \epsilon \sigma$ for some $\epsilon > 0$ (assuming $\sigma > 0$),
+\[
+\Prob(|X - \mu| \ge \epsilon \sigma) \le \frac{1}{\epsilon^2}
+\]
+\end{theorem}
+
+\begin{proof}
+The proof is a neat application of Markov's inequality.
+Let $Y = (X - \mu)^2$. Since $Y$ is a squared value, it must be non-negative, i.e., $Y \ge 0$.
+The expectation of $Y$ is, by definition of variance, $\E[Y] = \E[(X - \mu)^2] = \Var(X) = \sigma^2$.
+
+Now, consider the event $|X - \mu| \ge k$. Since both sides are non-negative, this is equivalent to squaring both sides: $(X - \mu)^2 \ge k^2$. This is precisely the event $Y \ge k^2$.
+Since $Y \ge 0$ and $k^2 > 0$ (as $k>0$), we can apply Markov's inequality (Theorem 1.10) to the random variable $Y$ with the threshold value $k^2$:
+\[
+\Prob(Y \ge k^2) \le \frac{\E[Y]}{k^2}
+\]
+Substituting back $Y = (X-\mu)^2$ and $\E[Y] = \sigma^2$, we get:
+\[
+\Prob((X - \mu)^2 \ge k^2) \le \frac{\sigma^2}{k^2}
+\]
+Since the event $(X - \mu)^2 \ge k^2$ is identical to the event $|X - \mu| \ge k$, we have arrived at the desired result:
+\[
+\Prob(|X - \mu| \ge k) \le \frac{\sigma^2}{k^2}
+\]
+\end{proof}
+
+\begin{remark}
+Like Markov's inequality, Chebyshev's inequality is powerful because it holds for *any* distribution with finite mean and variance. It doesn't require knowledge of the specific probability density or mass function, only the existence and values of the first two moments. The price for this generality is that the bound might still be loose compared to what one might get if the distribution were known (e.g., for a Normal distribution).
+\end{remark}
+
+\begin{corollary}[Concentration of the Sample Mean]
+Let $X_1, X_2, \dots, X_n$ be random variables that are identically distributed (with mean $\mu$ and variance $\sigma^2$) and \textbf{uncorrelated} (i.e., $\text{Cov}(X_i, X_j)=0$ for $i \ne j$). Let $\bar{X}_n = \frac{1}{n} \sum_{i=1}^n X_i$ be the sample mean. Then for any $\epsilon > 0$,
+\[
+\Prob(|\bar{X}_n - \mu| \ge \epsilon) \le \frac{\sigma^2}{n\epsilon^2}
+\]
+\end{corollary}
+
+\begin{proof}
+First, let's find the mean and variance of the sample mean $\bar{X}_n$.
+Using linearity of expectation:
+\[
+\E[\bar{X}_n] = \E\left[\frac{1}{n} \sum_{i=1}^n X_i\right] = \frac{1}{n} \sum_{i=1}^n \E[X_i] = \frac{1}{n} \sum_{i=1}^n \mu = \frac{1}{n} (n\mu) = \mu
+\]
+So, the sample mean is an unbiased estimator of the population mean.
+Now, let's find the variance. Since the variables are uncorrelated, the variance of the sum is the sum of the variances:
+\begin{align*} \Var(\bar{X}_n) &= \Var\left(\frac{1}{n} \sum_{i=1}^n X_i\right) \\ &= \frac{1}{n^2} \Var\left(\sum_{i=1}^n X_i\right) \quad \text{(Property of variance)} \\ &= \frac{1}{n^2} \sum_{i=1}^n \Var(X_i) \quad \text{(Uncorrelated variables)} \\ &= \frac{1}{n^2} \sum_{i=1}^n \sigma^2 = \frac{1}{n^2} (n\sigma^2) = \frac{\sigma^2}{n} \end{align*} 
+The variance of the sample mean decreases as $n$ increases, which is intuitive: averaging more variables should lead to less spread.
+
+Now we apply Chebyshev's inequality to the random variable $\bar{X}_n$. It has mean $\mu$ and variance $\sigma^2/n$. Using the threshold $\epsilon > 0$:
+\[
+\Prob(|\bar{X}_n - \mu| \ge \epsilon) \le \frac{\Var(\bar{X}_n)}{\epsilon^2} = \frac{(\sigma^2/n)}{\epsilon^2} = \frac{\sigma^2}{n\epsilon^2}
+\]
+This proves the result.
+\end{proof}
+
+\begin{remark}
+This corollary provides a proof of the \textbf{Weak Law of Large Numbers} under the condition of uncorrelated variables with finite variance. It shows that as the sample size $n$ increases, the probability that the sample mean $\bar{X}_n$ deviates from the true mean $\mu$ by more than any fixed amount $\epsilon$ converges to zero. The rate of convergence guaranteed by Chebyshev is at least $1/n$. The distribution of $\bar{X}_n$ becomes increasingly concentrated around $\mu$.
+\end{remark}
+
+\section{Expectation and Convexity (Section 1.4.2)}
+
+We now shift gears to explore a fascinating interaction between the expectation operator and a geometric property of functions known as convexity. This relationship leads to a fundamental inequality with wide-ranging applications.
+
+\begin{definition}[Convex and Concave Functions - Definition 1.12]
+Let $A \subseteq \R$ be an interval. A function $g: A \to \R$ is called \textbf{convex} on $A$ if for all $x, y \in A$ and all $\lambda \in [0, 1]$,
+\[
+g(\lambda x + (1-\lambda)y) \le \lambda g(x) + (1-\lambda)g(y)
+\]
+Geometrically, this means the line segment connecting any two points $(x, g(x))$ and $(y, g(y))$ on the graph of $g$ lies on or above the graph itself.
+
+A function $g$ is called \textbf{concave} on $A$ if the inequality is reversed:
+\[
+g(\lambda x + (1-\lambda)y) \ge \lambda g(x) + (1-\lambda)g(y)
+\]
+Equivalently, $g$ is concave if and only if $-g$ is convex. Thus, results for convex functions can be readily adapted to concave functions by flipping the inequality sign.
+\end{definition}
+
+\begin{remark}
+Convexity is a fundamental concept appearing in optimization (convex functions have unique minima under certain conditions), inequalities, functional analysis, and many other areas. Examples of convex functions include $g(x)=x^2$, $g(x)=e^x$, $g(x)=|x|$. Examples of concave functions include $g(x)=\sqrt{x}$ (for $x \ge 0$) and $g(x)=\ln(x)$ (for $x > 0$). A linear function $g(x)=ax+b$ is both convex and concave.
+\end{remark}
+
+The following lemma provides an alternative characterization of convexity, involving tangent or supporting lines, which is often useful and provides geometric insight.
+
+\begin{lemma}[Supporting Line Characterization - Lemma 1.13]
+A function $g: A \to \R$ defined on an interval $A$ is convex if and only if for every $x_0 \in A$, there exists a value $v(x_0)$ (representing the slope of a supporting line at $x_0$) such that for all $y \in A$,
+\[
+g(y) \ge g(x_0) + v(x_0)(y-x_0)
+\]
+Geometrically, this means that the graph of $g$ lies entirely on or above its supporting (or tangent, if differentiable) line at any point $x_0$.
+\end{lemma}
+
+\begin{proof}
+($\Longleftarrow$) Suppose such a function $v(x)$ exists. Let $x_1, x_2 \in A$ and $\lambda \in [0, 1]$. Let $x_0 = \lambda x_1 + (1-\lambda)x_2$. Since $A$ is an interval, $x_0 \in A$. Applying the assumed inequality at the point $x_0$, for $y=x_1$ and $y=x_2$:
+\begin{align*} g(x_1) &\ge g(x_0) + v(x_0)(x_1-x_0) \\ g(x_2) &\ge g(x_0) + v(x_0)(x_2-x_0) \end{align*}
+Multiply the first inequality by $\lambda$ ($\ge 0$) and the second by $(1-\lambda)$ ($\ge 0$) and add them:
+\[ \lambda g(x_1) + (1-\lambda) g(x_2) \ge \lambda g(x_0) + (1-\lambda)g(x_0) + v(x_0) [\lambda(x_1-x_0) + (1-\lambda)(x_2-x_0)] \]
+Simplifying the right side:
+\[ \lambda g(x_1) + (1-\lambda) g(x_2) \ge g(x_0) + v(x_0) [\lambda x_1 + (1-\lambda)x_2 - (\lambda + 1 - \lambda)x_0] \]
+Since $x_0 = \lambda x_1 + (1-\lambda)x_2$, the term in the square brackets is $x_0 - x_0 = 0$. Thus,
+\[ \lambda g(x_1) + (1-\lambda) g(x_2) \ge g(x_0) = g(\lambda x_1 + (1-\lambda)x_2) \]
+This is precisely the definition of convexity (with the inequality reversed from the definition, matching the required inequality).
+
+($\Longrightarrow$) Suppose $g$ is convex. For a fixed $x_0 \in A$, the slopes of the chords connecting $(x_0, g(x_0))$ to $(y, g(y))$ are non-decreasing as $y$ moves away from $x_0$.
+If $g$ is differentiable at $x_0$, the tangent line $L(y) = g(x_0) + g'(x_0)(y-x_0)$ serves as the supporting line, so we can choose $v(x_0) = g'(x_0)$. The inequality $g(y) \ge g(x_0) + g'(x_0)(y-x_0)$ is a standard property derived from the definition of convexity for differentiable functions.
+Even if $g$ is not differentiable everywhere, a convex function is continuous on the interior of $A$ and possesses left and right derivatives, $g'_-(x_0)$ and $g'_+(x_0)$, at any interior point $x_0$. Any value $v(x_0)$ such that $g'_-(x_0) \le v(x_0) \le g'_+(x_0)$ will satisfy the supporting line inequality. For instance, one can choose $v(x_0) = g'_+(x_0)$. The inequality can be derived more formally from the definition of convexity.
+\end{proof}
+
+\begin{example}[Checking Convexity via Second Derivative - Example 1.14]
+If a function $g$ is twice differentiable on an interval $A$, there's a very convenient way to check for convexity. Using Taylor's theorem, or as derived by integrating $g''$, we find:
+\[ g(y) = g(x) + g'(x)(y-x) + \int_{x}^{y} \int_{x}^{u} g''(v) dv du \]
+Rearranging gives:
+\[ g(y) - g(x) - g'(x)(y-x) = \int_{x}^{y} \left( \int_{x}^{u} g''(v) dv \right) du \]
+From Lemma 1.13 (with $x_0=x$), $g$ is convex if and only if the left-hand side is non-negative for all $x, y \in A$. This means the double integral on the right must be non-negative. This condition holds if and only if the innermost integrand $g''(v)$ is non-negative for all $v$ in the interval $A$.
+Therefore, for a twice-differentiable function $g$:
+\[
+g \text{ is convex on } A \iff g''(x) \ge 0 \text{ for all } x \in A
+\]
+Similarly, $g$ is concave if and only if $g''(x) \le 0$ for all $x \in A$. This provides a practical test.
+
+Examples:
+\begin{itemize}
+    \item $g(x) = e^x$. Then $g'(x) = e^x$ and $g''(x) = e^x$. Since $e^x > 0$ for all $x \in \R$, $g(x)=e^x$ is strictly convex on $\R$.
+    \item $g(x) = x^p$ for $x > 0$. Then $g'(x) = px^{p-1}$ and $g''(x) = p(p-1)x^{p-2}$. For $g''(x) \ge 0$ (given $x>0$), we need $p(p-1) \ge 0$. This occurs when $p \le 0$ or $p \ge 1$. The function $g(x)=x^p$ is convex on $(0, \infty)$ for $p \in (-\infty, 0] \cup [1, \infty)$. (The specific case $p \ge 2$ mentioned in the source notes is indeed convex). It is concave for $p \in [0, 1]$.
+\end{itemize}
+\end{example}
+
+Now we arrive at the central result connecting convexity and expectation.
+
+\begin{theorem}[Jensen's Inequality - Theorem 1.15]
+Let $X$ be a random variable such that its expectation $\mu = \E[X]$ is finite and lies within an interval $A$. Let $g: A \to \R$ be a \textbf{convex} function. If $\E[g(X)]$ also exists and is finite, then
+\[
+\E[g(X)] \ge g(\E[X])
+\]
+If $g$ is \textbf{concave} on $A$, the inequality is reversed:
+\[
+\E[g(X)] \le g(\E[X])
+\]
+\end{theorem}
+
+\begin{proof}
+We use the supporting line characterization from Lemma 1.13. Since $g$ is convex, let $x_0 = \E[X]$. As $x_0 \in A$, there exists a value $v(x_0)$ such that for any value $y$ in the range of $X$ (assuming the range is contained within $A$),
+\[
+g(y) \ge g(x_0) + v(x_0)(y-x_0)
+\]
+Let's substitute the random variable $X$ for $y$ and the constant $\E[X]$ for $x_0$. This inequality holds for each possible outcome of $X$:
+\[
+g(X) \ge g(\E[X]) + v(\E[X])(X - \E[X])
+\]
+Now, we take the expectation of both sides. Expectation is a linear operator and preserves inequalities (given that the expectations exist):
+\[
+\E[g(X)] \ge \E[g(\E[X]) + v(\E[X])(X - \E[X])]
+\]
+Using linearity of expectation on the right side:
+\[
+\E[g(X)] \ge \E[g(\E[X])] + \E[v(\E[X])(X - \E[X])]
+\]
+Since $g(\E[X])$ and $v(\E[X])$ are constants (because $\E[X]$ is a constant value), we can pull them out of the expectation:
+\[
+\E[g(X)] \ge g(\E[X]) + v(\E[X]) \E[X - \E[X]]
+\]
+The last expectation term is $\E[X - \E[X]] = \E[X] - \E[\E[X]] = \E[X] - \E[X] = 0$.
+So, the inequality simplifies to:
+\[
+\E[g(X)] \ge g(\E[X]) + v(\E[X]) \cdot 0
+\]
+\[
+\E[g(X)] \ge g(\E[X])
+\]
+This proves Jensen's inequality for convex functions. The proof for concave functions follows by applying the result to the convex function $-g$, which reverses the inequality.
+\end{proof}
+
+\begin{remark}
+Jensen's inequality essentially states that for a convex function, the expectation of the function's value is greater than or equal to the function applied to the expectation. For a concave function, it's the other way around. This has important interpretations, for instance, in utility theory (risk aversion corresponds to concave utility functions) and information theory.
+\end{remark}
+
+Jensen's inequality is a powerful tool for proving other inequalities. One important consequence is Lyapunov's inequality, which relates the different moments of a random variable.
+
+\begin{theorem}[Lyapunov's Inequality - Theorem 1.16]
+Let $X$ be a random variable. For any real numbers $p \ge q > 0$, if the $p$-th absolute moment $\E[|X|^p]$ is finite, then the $q$-th absolute moment $\E[|X|^q]$ is also finite, and
+\[
+\left(\E[|X|^{q}]\right)^{1 / q} \leq\left(\E[|X|^{p}]\right)^{1 / p}
+\]
+This means the function $f(r) = (\E[|X|^r])^{1/r}$, which represents the $L_r$-norm of $X$, is a non-decreasing function of $r$ for $r > 0$.
+\end{theorem}
+
+\begin{proof}
+Let $p \ge q > 0$. Define $r = p/q$. Since $p \ge q$, we have $r \ge 1$.
+Consider the function $g(z) = z^r = z^{p/q}$ for $z \ge 0$. Let's check its second derivative: $g'(z) = r z^{r-1}$, $g''(z) = r(r-1) z^{r-2}$. Since $r \ge 1$, we have $r-1 \ge 0$. Also, $r>0$ and $z^{r-2} \ge 0$ for $z \ge 0$ (interpret $0^0=1$ if $r=1$). Thus, $g''(z) \ge 0$, which means $g(z) = z^r$ is a \textbf{convex} function for $r \ge 1$.
+
+Let $Y = |X|^q$. Note that $Y$ is a non-negative random variable. Apply Jensen's inequality (Theorem 1.15) to the random variable $Y$ and the convex function $g(z) = z^r$:
+\[
+\E[g(Y)] \ge g(\E[Y])
+\]
+provided the expectations exist. Substituting $Y = |X|^q$ and $g(z) = z^r$:
+\[
+\E[(|X|^q)^r] \ge (\E[|X|^q])^r
+\]
+Simplifying the left side: $(|X|^q)^r = (|X|^q)^{p/q} = |X|^p$. So,
+\[
+\E[|X|^p] \ge (\E[|X|^q])^{p/q}
+\]
+Since $\E[|X|^p]$ is finite by assumption, the term $(\E[|X|^q])^{p/q}$ must also be finite. Since $p/q \ge 1$, this implies $\E[|X|^q]$ must be finite (and non-negative).
+Now, since both sides are non-negative and $p > 0$, we can take the positive $1/p$ power of both sides. The function $x \mapsto x^{1/p}$ is increasing for $x \ge 0$, so the inequality direction is preserved:
+\[
+(\E[|X|^p])^{1/p} \ge ((\E[|X|^q])^{p/q})^{1/p}
+\]
+Simplifying the right side exponent: $(p/q) \times (1/p) = 1/q$.
+\[
+(\E[|X|^p])^{1/p} \ge (\E[|X|^q])^{1/q}
+\]
+This is Lyapunov's inequality.
+\end{proof}
+
+\begin{corollary}[Finiteness of Lower Moments - Corollary 1.17]
+Let $X$ be a random variable. If $\E[|X|^p] < \infty$ for some $p > 0$, then $\E[|X|^q] < \infty$ for all $0 < q < p$.
+\end{corollary}
+\begin{proof}
+This follows directly from the proof of Lyapunov's inequality (Theorem 1.16). In the proof, we showed that if $\E[|X|^p] < \infty$, then $\E[|X|^q]$ must also be finite for $0 < q \le p$. The corollary statement just restricts $q$ to be strictly less than $p$.
+Alternatively, applying the main result of Lyapunov's inequality: $(\E[|X|^q])^{1/q} \le (\E[|X|^p])^{1/p}$. Since the right side is a finite number (as $\E[|X|^p] < \infty$), the left side must also be finite. Since $q > 0$, this implies $\E[|X|^q]$ must be finite.
+\end{proof}
+
+\begin{announcement}
+    \item \textbf{Applications of Jensen's Inequality:} Due to time constraints in lecture, we couldn't explore the many practical applications of Jensen's inequality. It plays a significant role in various fields including:
+        \begin{itemize}
+            \item Economics (e.g., modelling risk aversion using concave utility functions).
+            \item Information Theory (e.g., proving properties of entropy and relative entropy/KL divergence).
+            \item Optimization (e.g., in proofs related to convex optimization problems).
+            \item Statistical Physics.
+        \end{itemize}
+    \item \textbf{Further Exploration (Perplexity AI Link):} For those interested in seeing more examples and finding references, I previously used the AI model Perplexity to gather some information. You can explore its findings and follow related queries starting from this link:
+    \href{https://www.perplexity.ai/search/what-are-the-uses-of-of-jensen-uTJ3oIALRGCAxF8OIp\_Yw\#0}{Uses of Jensen Inequality (Perplexity Search)}
+    The linked search provides an initial summary and can be a useful starting point for further investigation.
+\end{announcement}
+
+\hrulefill
+\begin{center} \textbf{Exercise (Not covered in lecture)} \end{center}
+Prove that for a positive random variable $X$ (i.e., $X > 0$ with probability 1), if $\E[X]$ is finite and positive, then
+\[ \E[\ln(X)] \le \ln(\E[X]) \]
+(This inequality relates the expected logarithm to the logarithm of the expectation, sometimes connected to comparing geometric and arithmetic means, or ideas of logarithmic utility in economics).
+
+\textbf{Solution:}
+The function $g(x) = \ln(x)$ is defined for $x > 0$. We need to determine its convexity/concavity. Let's examine its second derivative:
+$g'(x) = 1/x$
+$g''(x) = -1/x^2$
+Since $X$ is positive, its possible values $x$ are greater than 0. For $x > 0$, $g''(x) = -1/x^2 < 0$. Therefore, $g(x) = \ln(x)$ is a strictly \textbf{concave} function on the interval $(0, \infty)$.
+
+We are given that $X > 0$ and $\E[X]$ exists, is finite, and positive. Thus, $\E[X]$ lies in the domain $(0, \infty)$ where $g$ is defined and concave. We also need $\E[\ln(X)]$ to exist (it could potentially be $-\infty$). Assuming $\E[\ln(X)]$ exists, we can apply Jensen's inequality for concave functions (Theorem 1.15, with the inequality reversed):
+\[ \E[g(X)] \le g(\E[X]) \]
+Substituting $g(x) = \ln(x)$:
+\[ \E[\ln(X)] \le \ln(\E[X]) \]
+This confirms the desired inequality.
+\hrulefill
+
+
+\section{Sampling from a Random Variable (Section 1.5)}
+
+So far, we've discussed the abstract properties of random variables and their distributions. A crucial practical question arises: how can we actually *generate* numerical values (realizations or samples) that follow a specific probability distribution? This process is fundamental for:
+\begin{itemize}
+    \item \textbf{Simulation:} Modeling random phenomena in science, engineering, finance, etc.
+    \item \textbf{Monte Carlo Methods:} Approximating integrals or expectations numerically.
+    \item \textbf{Statistical Inference:} Generating data for bootstrapping or permutation tests.
+    \item \textbf{Algorithm Testing:} Providing random inputs to evaluate algorithms.
+\end{itemize}
+
+Modern scientific computing environments like R, Python (with libraries like NumPy/SciPy), MATLAB, etc., provide convenient built-in functions to sample from many common distributions.
+
+\begin{example}[Sampling Functions in R]
+Here are examples of R commands for generating $n$ random samples from various distributions, corresponding to those listed in the original notes:
+\begin{itemize}
+    \item Standard Uniform distribution $U(0, 1)$: `runif(n, min = 0, max = 1)` (or simply `runif(n)`)
+    \item Standard Normal distribution $N(0, 1)$: `rnorm(n, mean = 0, sd = 1)` (or simply `rnorm(n)`)
+    \item Exponential distribution with rate $\lambda=1$: `rexp(n, rate = 1)` (or simply `rexp(n)`)
+    \item Geometric distribution with success probability $p$: `rgeom(n, prob = p)` (Note: R's `rgeom` counts the number of *failures* before the first success, starting from 0).
+\end{itemize}
+Many other functions like `rpois`, `rbinom`, `rgamma`, `rbeta`, etc., are available.
+\end{example}
+
+But what if we need to sample from a distribution that isn't built-in, or if we want to understand the fundamental principle behind how these generators might work? A widely applicable and elegant technique is the \textbf{Inverse Transform Method}. It leverages our ability to generate samples from the standard uniform distribution $U(0, 1)$ – the foundation upon which many other random number generations are built.
+
+The core idea is that if we can calculate the inverse of the Cumulative Distribution Function (CDF), $F^{-1}$, then we can transform a uniform random variable $V \sim U(0, 1)$ into a random variable $X = F^{-1}(V)$ that follows the distribution $F$.
+
+\subsection{Inverse Transform Method: Discrete Case}
+
+Let's first see how this works for sampling from a discrete distribution.
+
+\begin{lemma}[Inverse Transform Sampling (Discrete) - Based on Lemma 1.8]
+Let $X$ be a discrete random variable with possible values $x_1 < x_2 < x_3 < \dots$ and CDF $F(x) = \Prob(X \le x)$. Let $p_j = \Prob(X=x_j) = F(x_j) - F(x_{j-1})$ (where $F(x_0)=0$).
+Generate a random number $V$ from the $U(0, 1)$ distribution. Define a new random variable $Y$ as follows:
+\[ Y = x_j \quad \text{if} \quad F(x_{j-1}) < V \le F(x_j) \]
+This is equivalent to finding the smallest $j$ such that $F(x_j) \ge V$. That is, $Y = \min \{ x_j : F(x_j) \ge V \}$.
+Then the random variable $Y$ has the same distribution as $X$.
+\end{lemma}
+
+\begin{proof}
+We need to show that $\Prob(Y = x_j)$ is equal to the probability mass $p_j = \Prob(X = x_j)$ for every possible value $x_j$.
+By the definition of $Y$, the event $\{Y = x_j\}$ occurs if and only if the generated uniform random number $V$ falls into the interval $(F(x_{j-1}), F(x_j)]$.
+Since $V \sim U(0, 1)$, the probability of $V$ falling into any interval $(a, b] \subseteq [0, 1]$ is simply the length of the interval, $b-a$.
+Therefore,
+\[
+\Prob(Y = x_j) = \Prob(F(x_{j-1}) < V \le F(x_j))
+\]
+The length of this interval is $F(x_j) - F(x_{j-1})$. By the definition of a discrete CDF, this difference is exactly the probability mass $p_j = \Prob(X = x_j)$.
+Since $\Prob(Y = x_j) = \Prob(X = x_j)$ for all possible values $x_j$, the random variable $Y$ generated by this procedure has the same distribution as $X$.
+\end{proof}
+
+\begin{remark}
+To implement this, one typically generates $V \sim U(0,1)$ and then checks inequalities sequentially: Is $V \le F(x_1)$? If yes, $Y=x_1$. If no, is $V \le F(x_2)$? If yes, $Y=x_2$, and so on.
+\end{remark}
+
+\subsection{Inverse Transform Method: Continuous Case}
+
+The same principle applies beautifully to continuous distributions, especially those with strictly increasing CDFs where the inverse $F^{-1}$ is uniquely defined.
+
+\begin{lemma}[Inverse Transform Sampling (Continuous) - Lemma 1.9]
+Let $F$ be a continuous and strictly increasing CDF defined on some interval (the support of the random variable). Let $F^{-1}(v)$ denote the inverse function of $F$, which maps $(0, 1)$ back to the support interval.
+\begin{enumerate}
+    \item (\textbf{Sampling}) If $V \sim U(0, 1)$, then the random variable $X = F^{-1}(V)$ has CDF $F$.
+    \item (\textbf{Probability Integral Transform}) Conversely, if $X$ is a random variable with continuous and strictly increasing CDF $G$, then the random variable $V = G(X)$ follows the $U(0, 1)$ distribution.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\begin{enumerate}
+    \item We want to find the CDF of $X = F^{-1}(V)$. Let $F_X(x) = \Prob(X \le x)$.
+    \[ F_X(x) = \Prob(F^{-1}(V) \le x) \]
+    Since $F$ is strictly increasing, applying $F$ to both sides of the inequality $F^{-1}(V) \le x$ preserves the inequality direction:
+    \[ \Prob(F^{-1}(V) \le x) = \Prob(F(F^{-1}(V)) \le F(x)) = \Prob(V \le F(x)) \]
+    Now, since $V \sim U(0, 1)$, its CDF is $F_V(v) = v$ for $v \in [0, 1]$. Since $F(x)$ maps the support of $X$ into the interval $(0, 1)$ (because $F$ is continuous and strictly increasing), the value $F(x)$ lies in the range where the CDF of $V$ is defined. Therefore,
+    \[ \Prob(V \le F(x)) = F_V(F(x)) = F(x) \]
+    Thus, $F_X(x) = F(x)$. This shows that the random variable $X=F^{-1}(V)$ has the desired CDF $F$.
+
+    \item We want to find the CDF of $V = G(X)$. Let $F_V(v) = \Prob(V \le v)$ for $v \in (0, 1)$. (The range of $G(X)$ will be $(0, 1)$ since $G$ is a continuous strictly increasing CDF).
+    \[ F_V(v) = \Prob(G(X) \le v) \]
+    Since $G$ is strictly increasing, it has a unique inverse $G^{-1}$. Applying $G^{-1}$ to both sides preserves the inequality:
+    \[ \Prob(G(X) \le v) = \Prob(G^{-1}(G(X)) \le G^{-1}(v)) = \Prob(X \le G^{-1}(v)) \]
+    By definition, $\Prob(X \le x)$ is given by the CDF of $X$, which is $G(x)$. So, applying this with $x = G^{-1}(v)$:
+    \[ \Prob(X \le G^{-1}(v)) = G(G^{-1}(v)) = v \]
+    Therefore, $F_V(v) = v$ for $v \in (0, 1)$. This is exactly the CDF of the $U(0, 1)$ distribution.
+\end{enumerate}
+\end{proof}
+
+\begin{remark}
+Part 2, the Probability Integral Transform, is a fascinating result stating that applying its own CDF transformation to *any* continuous random variable yields a standard uniform variable. This has important applications in statistics, for instance, in constructing goodness-of-fit tests or transforming data to uniformity. The original notes mentioned that a version of this lemma was related to a previous homework problem (Exercise 1, Question 3).
+\end{remark}
+
+\begin{example}[Sampling from an Exponential Distribution - Example 1.20]
+Let's apply the inverse transform method (Lemma 1.19, part 1) to generate a sample from an Exponential distribution with rate parameter $\lambda > 0$. The specific case mentioned in the original lecture was $\lambda = 3$.
+The CDF of the $Exp(\lambda)$ distribution is:
+\[ F(x) = 1 - e^{-\lambda x}, \quad \text{for } x \ge 0 \]
+This CDF is continuous and strictly increasing on $[0, \infty)$. Its range is $[0, 1)$.
+
+To apply the method, we need to find the inverse function $F^{-1}(v)$. We set $v = F(x)$ for $v \in (0, 1)$ and solve for $x$:
+\begin{align*} v &= 1 - e^{-\lambda x} \\ e^{-\lambda x} &= 1 - v \\ -\lambda x &= \ln(1 - v) \quad \text{(taking natural log of both sides)} \\ x &= -\frac{1}{\lambda} \ln(1 - v) \end{align*}
+So, the inverse CDF is $F^{-1}(v) = -\frac{1}{\lambda} \ln(1 - v)$.
+
+According to the lemma, if we generate a standard uniform random variable $V \sim U(0, 1)$, then the transformed random variable
+\[ X = F^{-1}(V) = -\frac{1}{\lambda} \ln(1 - V) \]
+will have an $Exp(\lambda)$ distribution.
+
+For the specific case $\lambda = 3$ from the lecture:
+\[ X = -\frac{1}{3} \ln(1 - V) \]
+where $V \sim U(0, 1)$.
+
+\textit{Computational Note:} If $V \sim U(0, 1)$, then the random variable $V' = 1 - V$ also follows a $U(0, 1)$ distribution (its CDF is $\Prob(1-V \le v) = \Prob(V \ge 1-v) = 1 - (1-v) = v$). Therefore, we can equivalently use the computationally slightly simpler formula:
+\[ X = -\frac{1}{\lambda} \ln(V') \]
+where $V'$ is a *different* $U(0, 1)$ sample. This form avoids the subtraction $1-V$ and is often the one implemented in software libraries.
+\end{example}
+
+The inverse transform method is a powerful and general technique, providing a constructive way to sample from any distribution for which we can compute the inverse CDF, $F^{-1}$. This might be done analytically (as in the exponential example) or numerically if an analytical inverse is unavailable.
+
+% --- Document End ---
+\end{document}
