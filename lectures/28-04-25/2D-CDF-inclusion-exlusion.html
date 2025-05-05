@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D CDF Inclusion-Exclusion Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for SVG elements */
+        .axis-line {
+            stroke: black;
+            stroke-width: 2;
+        }
+        .label-text {
+            font-family: sans-serif;
+            font-size: 14px;
+            fill: black;
+            text-anchor: middle;
+        }
+        .point-label {
+            font-family: sans-serif;
+            font-size: 12px;
+            fill: #555;
+            text-anchor: middle; /* Center labels on ticks */
+        }
+        .area-rect {
+            /* stroke: #ccc; */ /* Optional: remove stroke for cleaner area fills */
+            stroke-width: 0;
+            /* stroke-dasharray: 3,3; */
+            transition: fill 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .target-rect-outline {
+            stroke: blue;
+            stroke-width: 2.5;
+            fill: none;
+            pointer-events: none; /* Prevent outline from interfering */
+        }
+        /* Define colors for steps */
+        .color-b1b2 { fill: #90EE90; opacity: 0.6; } /* Light Green */
+        .color-a1b2 { fill: #FFB6C1; opacity: 0.8; } /* Light Pink/Red - Subtraction */
+        .color-b1a2 { fill: #FFB6C1; opacity: 0.8; } /* Light Pink/Red - Subtraction */
+        .color-a1a2-subtracted { fill: #DC143C; opacity: 0.9; } /* Crimson Red - Double Subtracted */
+        .color-a1a2-added { fill: #FFFFE0; opacity: 0.7; } /* Light Yellow - Added back */
+        .color-target { fill: #ADD8E6; opacity: 0.8; } /* Light Blue - Final Result */
+
+        /* Button styling */
+        button {
+            transition: background-color 0.2s ease;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans flex flex-col items-center min-h-screen p-4 md:p-8">
+
+    <div class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-4">
+            Visualizing 2D CDF Inclusion-Exclusion
+        </h1>
+        <p class="text-center text-gray-600 mb-6">
+            This visualization demonstrates how to calculate the probability $\mathbb{P}(a_1 < X_1 \leq b_1, a_2 < X_2 \leq b_2)$ using the Cumulative Distribution Function (CDF) $F_X(x_1, x_2)$. The formula is:
+            <br> $F_X(b_1, b_2) - F_X(a_1, b_2) - F_X(b_1, a_2) + F_X(a_1, a_2)$
+        </p>
+
+        <div id="explanation" class="bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-4 mb-6 text-center min-h-[60px] flex items-center justify-center">
+            Click 'Start' to begin the visualization.
+        </div>
+
+        <div class="flex justify-center mb-6">
+            <svg id="cdf-visualization" viewBox="0 0 400 400" class="w-full max-w-md border border-gray-300 rounded-md bg-white">
+                <line x1="50" y1="350" x2="370" y2="350" class="axis-line" marker-end="url(#arrowhead)"/> <line x1="50" y1="350" x2="50" y2="30" class="axis-line" marker-end="url(#arrowhead)"/>  <text x="380" y="355" class="label-text">X₁</text>
+                <text x="45" y="25" class="label-text">X₂</text>
+                <text x="50" y="365" class="point-label">0</text>
+
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="black" />
+                    </marker>
+                </defs>
+
+                <rect id="rect-b1b2-visual" x="50" y="100" width="250" height="250" class="area-rect" fill="transparent" opacity="0"/>
+                <rect id="rect-a1b2-visual" x="50" y="100" width="50" height="250" class="area-rect" fill="transparent" opacity="0"/>
+                <rect id="rect-b1a2-visual" x="50" y="300" width="250" height="50" class="area-rect" fill="transparent" opacity="0"/>
+                <rect id="rect-a1a2-visual" x="50" y="300" width="50" height="50" class="area-rect" fill="transparent" opacity="0"/>
+
+                <rect id="rect-target-fill" x="100" y="100" width="200" height="200" class="area-rect" fill="transparent" opacity="0"/>
+
+                <line x1="100" y1="345" x2="100" y2="355" stroke="black" stroke-width="1"/>
+                <text x="100" y="370" class="point-label">a₁</text>
+                <line x1="300" y1="345" x2="300" y2="355" stroke="black" stroke-width="1"/>
+                <text x="300" y="370" class="point-label">b₁</text>
+                <line x1="45" y1="300" x2="55" y2="300" stroke="black" stroke-width="1"/> <text x="35" y="305" class="point-label">a₂</text>
+                <line x1="45" y1="100" x2="55" y2="100" stroke="black" stroke-width="1"/> <text x="35" y="105" class="point-label">b₂</text>
+
+                <line x1="100" y1="100" x2="100" y2="350" stroke="#aaa" stroke-width="1" stroke-dasharray="2,2"/> <line x1="300" y1="100" x2="300" y2="350" stroke="#aaa" stroke-width="1" stroke-dasharray="2,2"/> <line x1="50" y1="300" x2="300" y2="300" stroke="#aaa" stroke-width="1" stroke-dasharray="2,2"/> <line x1="50" y1="100" x2="300" y2="100" stroke="#aaa" stroke-width="1" stroke-dasharray="2,2"/> <rect id="rect-target-outline" x="100" y="100" width="200" height="200" class="target-rect-outline" opacity="0"/>
+
+            </svg>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-3">
+            <button id="btn-start" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md shadow">Start / Step 1: F(b₁, b₂)</button>
+            <button id="btn-step2" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md shadow" disabled>Step 2: - F(a₁, b₂)</button>
+            <button id="btn-step3" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md shadow" disabled>Step 3: - F(b₁, a₂)</button>
+            <button id="btn-step4" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md shadow" disabled>Step 4: + F(a₁, a₂)</button>
+            <button id="btn-reset" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md shadow">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const explanation = document.getElementById('explanation');
+        const rectB1B2 = document.getElementById('rect-b1b2-visual');
+        const rectA1B2 = document.getElementById('rect-a1b2-visual');
+        const rectB1A2 = document.getElementById('rect-b1a2-visual');
+        const rectA1A2 = document.getElementById('rect-a1a2-visual'); // Represents the area F(a1, a2)
+        const rectTargetOutline = document.getElementById('rect-target-outline');
+        const rectTargetFill = document.getElementById('rect-target-fill'); // Fill for final step
+
+        const btnStart = document.getElementById('btn-start');
+        const btnStep2 = document.getElementById('btn-step2');
+        const btnStep3 = document.getElementById('btn-step3');
+        const btnStep4 = document.getElementById('btn-step4');
+        const btnReset = document.getElementById('btn-reset');
+
+        let currentStep = 0;
+
+        // Function to update visualization state
+        function updateVisualization(step) {
+            // Reset styles first - Make all transparent initially
+            rectB1B2.setAttribute('fill', 'transparent'); rectB1B2.setAttribute('opacity', '0');
+            rectA1B2.setAttribute('fill', 'transparent'); rectA1B2.setAttribute('opacity', '0');
+            rectB1A2.setAttribute('fill', 'transparent'); rectB1A2.setAttribute('opacity', '0');
+            rectA1A2.setAttribute('fill', 'transparent'); rectA1A2.setAttribute('opacity', '0');
+            rectTargetOutline.setAttribute('opacity', '0');
+            rectTargetFill.setAttribute('fill', 'transparent'); rectTargetFill.setAttribute('opacity', '0');
+
+            // Apply styles based on step - Layering colors
+            switch(step) {
+                case 1: // Show F(b1, b2)
+                    explanation.innerHTML = '<strong>Step 1: Start with F(b₁, b₂)</strong><br>This is the probability in the region (-∞, b₁] × (-∞, b₂].';
+                    // Show the full area F(b1, b2)
+                    rectB1B2.setAttribute('fill', '#90EE90'); // Light Green
+                    rectB1B2.setAttribute('opacity', '0.6');
+                    rectTargetOutline.setAttribute('opacity', '1'); // Show target outline for reference
+                    break;
+                case 2: // Subtract F(a1, b2)
+                    explanation.innerHTML = '<strong>Step 2: Subtract F(a₁, b₂)</strong><br>Remove the probability in (-∞, a₁] × (-∞, b₂].';
+                    // Show F(b1, b2) base
+                    rectB1B2.setAttribute('fill', '#90EE90');
+                    rectB1B2.setAttribute('opacity', '0.6');
+                    // "Cover" the F(a1, b2) part with subtraction color
+                    rectA1B2.setAttribute('fill', '#FFB6C1'); // Light Pink
+                    rectA1B2.setAttribute('opacity', '0.8');
+                    rectTargetOutline.setAttribute('opacity', '1');
+                    break;
+                case 3: // Subtract F(b1, a2)
+                    explanation.innerHTML = '<strong>Step 3: Subtract F(b₁, a₂)</strong><br>Remove the probability in (-∞, b₁] × (-∞, a₂]. Notice the bottom-left corner is subtracted twice.';
+                    // Show F(b1, b2) base
+                    rectB1B2.setAttribute('fill', '#90EE90');
+                    rectB1B2.setAttribute('opacity', '0.6');
+                    // Show first subtraction F(a1, b2)
+                    rectA1B2.setAttribute('fill', '#FFB6C1');
+                    rectA1B2.setAttribute('opacity', '0.8');
+                    // Show second subtraction F(b1, a2)
+                    rectB1A2.setAttribute('fill', '#FFB6C1');
+                    rectB1A2.setAttribute('opacity', '0.8');
+                    // Highlight the doubly subtracted area F(a1, a2) by overlaying a darker color
+                    rectA1A2.setAttribute('fill', '#DC143C'); // Crimson Red
+                    rectA1A2.setAttribute('opacity', '0.9');
+                    rectTargetOutline.setAttribute('opacity', '1');
+                    break;
+                case 4: // Add F(a1, a2) -> Result is the target rectangle
+                    explanation.innerHTML = '<strong>Step 4: Add back F(a₁, a₂)</strong><br>Add the probability in (-∞, a₁] × (-∞, a₂] to correct the double subtraction. This leaves the target area.';
+                    // Hide intermediate steps, show only the final target area
+                    rectTargetFill.setAttribute('fill', '#ADD8E6'); // Target color (Light Blue)
+                    rectTargetFill.setAttribute('opacity', '0.8');
+                    rectTargetOutline.setAttribute('opacity', '1'); // Keep outline visible
+
+                    /* // Alternative: Show components visually leading to the result
+                    // Show F(b1, b2) base (faded)
+                    rectB1B2.setAttribute('fill', '#90EE90');
+                    rectB1B2.setAttribute('opacity', '0.3');
+                    // Show subtractions (faded pink)
+                    rectA1B2.setAttribute('fill', '#FFB6C1');
+                    rectA1B2.setAttribute('opacity', '0.4');
+                    rectB1A2.setAttribute('fill', '#FFB6C1');
+                    rectB1A2.setAttribute('opacity', '0.4');
+                    // Show added back area (yellow)
+                    rectA1A2.setAttribute('fill', '#FFFFE0'); // Light Yellow
+                    rectA1A2.setAttribute('opacity', '0.7');
+                    // Highlight target outline
+                    rectTargetOutline.setAttribute('opacity', '1');
+                    // Fill target area distinctly
+                    rectTargetFill.setAttribute('fill', '#ADD8E6'); // Light Blue
+                    rectTargetFill.setAttribute('opacity', '0.9');
+                    */
+                    break;
+                case 0: // Reset state
+                default:
+                    explanation.innerHTML = 'Click \'Start\' to begin the visualization.';
+                    currentStep = 0;
+                    btnStart.disabled = false;
+                    btnStep2.disabled = true;
+                    btnStep3.disabled = true;
+                    btnStep4.disabled = true;
+                    break;
+            }
+
+            // Enable/disable buttons
+            btnStart.disabled = (step >= 1);
+            btnStep2.disabled = (step !== 1);
+            btnStep3.disabled = (step !== 2);
+            btnStep4.disabled = (step !== 3);
+        }
+
+        // Event Listeners
+        btnStart.addEventListener('click', () => {
+            currentStep = 1;
+            updateVisualization(currentStep);
+        });
+        btnStep2.addEventListener('click', () => {
+            currentStep = 2;
+            updateVisualization(currentStep);
+        });
+        btnStep3.addEventListener('click', () => {
+            currentStep = 3;
+            updateVisualization(currentStep);
+        });
+        btnStep4.addEventListener('click', () => {
+            currentStep = 4;
+            updateVisualization(currentStep);
+        });
+        btnReset.addEventListener('click', () => {
+            updateVisualization(0);
+        });
+
+        // Initial state
+        updateVisualization(0);
+
+    </script>
+
+</body>
+</html>
