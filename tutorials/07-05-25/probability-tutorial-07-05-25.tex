@@ -1,0 +1,542 @@
+\documentclass[11pt, letterpaper]{article}
+
+\usepackage[utf8]{inputenc} % Standard encoding
+\usepackage{amsmath, amssymb, amsthm, amsfonts} % Core math packages
+\usepackage{enumitem} % For customizing lists
+\usepackage{geometry} % For page layout
+\geometry{hmargin=1in, vmargin=1in} % Setting margins
+\usepackage{graphicx} % If any figures are needed
+\usepackage{hyperref} % For clickable links (e.g., ToC, URLs)
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={Probability Course Notes and Announcements},
+    pdfpagemode=UseNone, % Prevents PDF from opening in full screen
+    bookmarksopen=true,
+    pdfauthor={Undergraduate Mathematics Educator}
+}
+\usepackage[T1]{fontenc} % For better font encoding, helps with copy-paste
+\usepackage{lmodern} % A good quality Latin Modern font, often preferred over Computer Modern
+\usepackage{microtype} % Improves typography
+
+% Theorem-like environments configuration
+\theoremstyle{plain} % Default style: italicized text
+\newtheorem{theorem}{Theorem}[section] % Numbered within sections
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition} % Upright text for these
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{problem}{Problem}[section] % Numbered within sections for clarity
+
+\theoremstyle{remark} % Upright text for remarks
+\newtheorem{remark}[theorem]{Remark}
+
+% Custom environment for announcements
+\newenvironment{courseannouncements}
+  {\par\bigskip\noindent\begin{center}\rule{\textwidth}{0.4pt}\end{center}\par\nobreak\medskip\noindent\textbf{Course Announcements \& Information}\par\nobreak\medskip\begin{itemize}[leftmargin=*]}
+  {\end{itemize}\par\nobreak\medskip\noindent\begin{center}\rule{\textwidth}{0.4pt}\end{center}\par\bigskip}
+
+% Math operators and macros
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{\mathrm{Var}}
+\DeclareMathOperator{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}} % Using \mathbb{P} for probability
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\dee}{\mathrm{d}} % For differential d, e.g., \int f(x) \dee x
+\newcommand{\DKL}{D_{\mathrm{KL}}} % KL Divergence
+\newcommand{\MGF}{\mathrm{MGF}} % MGF operator
+\newcommand{\CGF}{\mathrm{CGF}} % CGF operator
+\newcommand{\Pois}{\mathrm{Poisson}}
+\newcommand{\Bern}{\mathrm{Bernoulli}}
+\newcommand{\Unif}{\mathrm{Uniform}}
+
+\title{Selected Topics in Probability: \\ Course Notes and Announcements \\ \large Compiled and Expanded from Lecture Transcripts}
+\author{An Undergraduate Mathematics Educator} % Persona
+\date{Current Term} % Generic date
+
+\linespread{1.1} % Slightly increased line spacing for readability
+
+\begin{document}
+\maketitle
+\tableofcontents
+\clearpage
+
+% --- Announcements Section ---
+\begin{courseannouncements}
+    \item \textbf{Upcoming Quiz Information:}
+    \begin{itemize}
+        \item \textbf{Content Coverage:} The quiz will cover all material presented in lectures up to and including the topics of the current week. This means it will also include material corresponding to the \textit{next} problem set, as one problem set cycle was missed earlier.
+        \item \textbf{Structure:} The quiz is expected to consist of approximately three main questions, with the possibility of an additional bonus question.
+        \item \textbf{Duration:} The allotted time for the quiz will be 1.5 hours (90 minutes).
+        \item \textbf{Formula Sheet:} A formula sheet, prepared by Hagit, will be made available on Moodle in the coming days. Please familiarize yourself with it once it is posted to understand which formulas are provided and which you are expected to know or derive.
+    \end{itemize}
+    \item \textbf{Guidance for Quiz Preparation:}
+    \begin{itemize}
+        \item \textbf{Primary Focus:} It is highly recommended to concentrate your study efforts on the problem sets assigned during this term and the style of questions and examples discussed in lectures and review sessions.
+        \item \textbf{Regarding Past Exams:} While past exam papers can sometimes be useful, please be aware that their style or emphasis might differ from the current course structure or your specific lecturer's approach. Therefore, they may not be fully representative of the upcoming quiz.
+    \end{itemize}
+    \item \textbf{Notes on Problem Sets and Review Sessions:}
+    \begin{itemize}
+        \item \textbf{Problem Set Scope:} Some problem sets are quite comprehensive. It's possible that not every single question from every problem set will be covered in exhaustive detail during the scheduled review sessions.
+        \item \textbf{Example of Review Coverage (from a recent session):} One review session might cover certain questions from a problem set (e.g., Q1, Q2), while another session might focus on other questions from the same set (e.g., Q3, Q4, Q5).
+        \item \textbf{Sampling and Code Questions:} For questions involving sampling algorithms and code, the review sessions will primarily focus on the theoretical underpinnings of the sampling methods. The specific code implementation details will generally be kept straightforward in the provided solutions.
+    \end{itemize}
+    \item \textbf{Seeking Clarifications:}
+    \begin{itemize}
+        \item Should any concepts, problem solutions, or administrative details remain unclear after attending lectures and review sessions, please do not hesitate to send an email for clarification.
+    \end{itemize}
+\end{courseannouncements}
+
+% --- Mathematical Content ---
+\section{Moment and Cumulant Generating Functions}
+\label{sec:mgf_cgf}
+
+Generating functions are remarkably powerful tools in probability theory. The Moment Generating Function (MGF), when it exists in a neighborhood around zero, offers a unique "fingerprint" for a probability distribution. Moreover, as its name aptly suggests, it can be used to systematically derive the moments of a random variable. Closely related is the Cumulant Generating Function (CGF), obtained from the MGF, which simplifies the calculation of cumulants—quantities related to moments that possess valuable statistical properties, particularly concerning sums of independent random variables.
+
+\subsection{The Moment Generating Function (MGF) of a Poisson Distribution}
+\label{subsec:mgf_poisson}
+
+Let $X$ be a random variable following a Poisson distribution with parameter $\lambda > 0$, denoted $X \sim \Pois(\lambda)$. Its Probability Mass Function (PMF) is given by:
+\[ P(X=k) = \frac{e^{-\lambda}\lambda^k}{k!}, \quad \text{for } k = 0, 1, 2, \dots \]
+The MGF of $X$, $M_X(t)$, is defined as $M_X(t) = \E[e^{tX}]$, provided this expectation exists for $t$ in some neighborhood of 0.
+
+\begin{example}[Deriving the MGF of a Poisson($\lambda$) RV]
+\label{ex:mgf_poisson}
+We calculate $M_X(t)$ directly from its definition:
+\begin{align*}
+M_X(t) &= \E[e^{tX}] = \sum_{k=0}^{\infty} e^{tk} P(X=k) \quad \text{(by definition of expectation for discrete RVs)} \\
+&= \sum_{k=0}^{\infty} e^{tk} \frac{e^{-\lambda}\lambda^k}{k!} \\
+&= e^{-\lambda} \sum_{k=0}^{\infty} \frac{(e^t)^k \lambda^k}{k!} \quad \text{(factoring out } e^{-\lambda} \text{, constant w.r.t. } k \text{)} \\
+&= e^{-\lambda} \sum_{k=0}^{\infty} \frac{(\lambda e^t)^k}{k!} \quad \text{(combining terms with exponent } k \text{)}
+\end{align*}
+We now recall the Taylor series expansion for the exponential function $e^y = \sum_{k=0}^{\infty} \frac{y^k}{k!}$.
+In our sum, we can identify $y = \lambda e^t$.
+Therefore, the sum becomes:
+\[ \sum_{k=0}^{\infty} \frac{(\lambda e^t)^k}{k!} = e^{\lambda e^t} \]
+Substituting this back into our expression for $M_X(t)$, we get:
+\[ M_X(t) = e^{-\lambda} e^{\lambda e^t} = e^{\lambda e^t - \lambda} = e^{\lambda(e^t-1)} \]
+This MGF exists for all $t \in \R$.
+\begin{remark}
+    The key step here was recognizing the familiar Taylor series. If this is not immediately apparent, one might try to manipulate the sum to resemble the PMF of another Poisson distribution that sums to 1, but for this standard MGF, the Taylor series approach is most direct and elegant.
+\end{remark}
+\end{example}
+
+\subsection{Cumulant Generating Functions (CGFs) and Cumulants}
+\label{subsec:cgf_cumulants}
+
+\begin{definition}[Cumulant Generating Function (CGF)]
+The Cumulant Generating Function (CGF) of a random variable $X$, denoted $K_X(t)$ or $\CGF_X(t)$, is defined as the natural logarithm of its MGF:
+\[ K_X(t) = \log M_X(t) \]
+provided $M_X(t)$ exists and is positive (which it will be if it exists, as $M_X(t)=\E[e^{tX}]$ and $e^{tX}>0$).
+\end{definition}
+
+\begin{definition}[Cumulants]
+The $n$-th cumulant of $X$, denoted $\kappa_n$, is defined as the $n$-th derivative of the CGF evaluated at $t=0$:
+\[ \kappa_n = K_X^{(n)}(0) = \left. \frac{\dee^n}{\dee t^n} K_X(t) \right|_{t=0} \]
+\end{definition}
+
+\begin{example}[Cumulants of the Poisson($\lambda$) Distribution]
+\label{ex:cumulants_poisson}
+From Example \ref{ex:mgf_poisson}, we have $M_X(t) = e^{\lambda(e^t-1)}$ for $X \sim \Pois(\lambda)$.
+The CGF is:
+\[ K_X(t) = \log(e^{\lambda(e^t-1)}) = \lambda(e^t-1) = \lambda e^t - \lambda \]
+Now, let's find its derivatives with respect to $t$:
+\begin{align*}
+K_X'(t) &= \frac{\dee}{\dee t}(\lambda e^t - \lambda) = \lambda e^t \\
+K_X''(t) &= \frac{\dee}{\dee t}(\lambda e^t) = \lambda e^t \\
+&\vdots \\
+K_X^{(n)}(t) &= \lambda e^t \quad \text{for any integer } n \ge 1
+\end{align*}
+Evaluating these derivatives at $t=0$ gives us the cumulants:
+\[ \kappa_n = K_X^{(n)}(0) = \lambda e^0 = \lambda \]
+Thus, for a Poisson($\lambda$) distribution, all cumulants $\kappa_n$ (for $n \ge 1$) are equal to $\lambda$. This is a distinctive and elegant property of the Poisson distribution!
+\end{example}
+
+\subsection{Relationship Between Moments and Cumulants}
+\label{subsec:moments_cumulants_relation}
+
+Moments $m_n = \E[X^n] = M_X^{(n)}(0)$ (the $n$-th derivative of MGF at $t=0$) and cumulants $\kappa_n = K_X^{(n)}(0)$ are intrinsically linked. Let's derive the first few relationships. A crucial fact we'll use is $M_X(0) = \E[e^{0 \cdot X}] = \E[1] = 1$.
+
+\subsubsection{First Cumulant: $\kappa_1 = m_1$}
+\begin{proof}
+The CGF is $K_X(t) = \log M_X(t)$. Its first derivative is:
+\[ K_X'(t) = \frac{M_X'(t)}{M_X(t)} \]
+Evaluating at $t=0$:
+\[ \kappa_1 = K_X'(0) = \frac{M_X'(0)}{M_X(0)} \]
+Since $M_X'(0) = m_1$ (the first moment, i.e., the mean $\E[X]$) and $M_X(0)=1$, we have:
+\[ \kappa_1 = \frac{m_1}{1} = m_1 \]
+So, the first cumulant is identical to the mean of the distribution.
+\end{proof}
+
+\subsubsection{Second Cumulant: $\kappa_2 = m_2 - m_1^2$}
+\begin{proof}
+We differentiate $K_X'(t) = M_X'(t)/M_X(t)$ using the quotient rule:
+\begin{align*}
+K_X''(t) &= \frac{\dee}{\dee t}\left(\frac{M_X'(t)}{M_X(t)}\right) \\
+&= \frac{M_X''(t)M_X(t) - M_X'(t)M_X'(t)}{(M_X(t))^2} \\
+&= \frac{M_X''(t)M_X(t) - (M_X'(t))^2}{(M_X(t))^2}
+\end{align*}
+Evaluating at $t=0$:
+\[ \kappa_2 = K_X''(0) = \frac{M_X''(0)M_X(0) - (M_X'(0))^2}{(M_X(0))^2} \]
+Substituting $M_X(0)=1$, $M_X'(0)=m_1$, and $M_X''(0)=m_2$ (the second moment $\E[X^2]$):
+\[ \kappa_2 = \frac{m_2 \cdot 1 - (m_1)^2}{1^2} = m_2 - m_1^2 \]
+This expression $m_2 - m_1^2 = \E[X^2] - (\E[X])^2$ is precisely the variance of $X$, $\Var(X)$.
+Thus, the second cumulant is equal to the variance of the distribution.
+\end{proof}
+
+\subsubsection{Third Cumulant: $\kappa_3 = m_3 - 3m_1m_2 + 2m_1^3$}
+\begin{proof}
+Differentiating $K_X''(t)$ to find $K_X'''(t)$ requires careful application of the quotient rule again, or chain rule if expressed differently. After differentiation and evaluation at $t=0$ (substituting $M_X(0)=1, M_X'(0)=m_1, M_X''(0)=m_2, M_X'''(0)=m_3$), the result is:
+\[ \kappa_3 = m_3 - 3m_2m_1 + 2m_1^3 \]
+The third cumulant is related to the skewness of the distribution, providing a measure of its asymmetry.
+\end{proof}
+\begin{remark}
+    While you are generally not expected to memorize the formulas relating higher-order cumulants to moments (especially for $n \ge 3$), understanding their origin from derivatives of the CGF and being able to use them if provided is key. The process of deriving these relationships, as shown, is a good exercise in calculus and understanding of generating functions.
+\end{remark}
+
+\subsection{Calculating Moments of Poisson($\lambda$) using Cumulants}
+\label{subsec:poisson_moments_via_cumulants}
+
+We've established two important facts:
+\begin{enumerate}
+    \item For $X \sim \Pois(\lambda)$, all cumulants $\kappa_n = \lambda$ for $n \ge 1$ (Example \ref{ex:cumulants_poisson}).
+    \item We have general formulas relating $\kappa_n$ to moments $m_i$ (Section \ref{subsec:moments_cumulants_relation}).
+\end{enumerate}
+We can combine these to easily find the first few moments of a Poisson($\lambda$) random variable.
+
+\begin{example}[First three moments of Poisson($\lambda$) via cumulants]
+\label{ex:poisson_moments_from_cumulants}
+Let $X \sim \Pois(\lambda)$. We know $\kappa_1=\lambda, \kappa_2=\lambda, \kappa_3=\lambda$.
+\begin{enumerate}[label=(\alph*)]
+    \item \textbf{First moment ($m_1 = \E[X]$):}
+    Using $\kappa_1 = m_1$, and $\kappa_1 = \lambda$:
+    \[ m_1 = \lambda \]
+
+    \item \textbf{Second moment ($m_2 = \E[X^2]$):}
+    Using $\kappa_2 = m_2 - m_1^2$. We have $\kappa_2 = \lambda$ and $m_1 = \lambda$:
+    \[ \lambda = m_2 - (\lambda)^2 \]
+    Solving for $m_2$:
+    \[ m_2 = \lambda + \lambda^2 \]
+    (As a check: $\Var(X) = \kappa_2 = \lambda$. Also, $\Var(X) = m_2 - m_1^2 = (\lambda + \lambda^2) - \lambda^2 = \lambda$. This is consistent.)
+
+    \item \textbf{Third moment ($m_3 = \E[X^3]$):}
+    Using $\kappa_3 = m_3 - 3m_1m_2 + 2m_1^3$. We have $\kappa_3 = \lambda$, $m_1 = \lambda$, and $m_2 = \lambda + \lambda^2$:
+    \begin{align*}
+    \lambda &= m_3 - 3(\lambda)(\lambda + \lambda^2) + 2(\lambda)^3 \\
+    \lambda &= m_3 - (3\lambda^2 + 3\lambda^3) + 2\lambda^3 \\
+    \lambda &= m_3 - 3\lambda^2 - 3\lambda^3 + 2\lambda^3 \\
+    \lambda &= m_3 - 3\lambda^2 - \lambda^3
+    \end{align*}
+    Solving for $m_3$:
+    \[ m_3 = \lambda + 3\lambda^2 + \lambda^3 \]
+\end{enumerate}
+This method elegantly demonstrates how the simple structure of Poisson cumulants can simplify moment calculations.
+\end{example}
+
+\section{Identifying Distributions from MGFs}
+\label{sec:identifying_dist_mgf}
+
+One of the most powerful aspects of MGFs is their uniqueness property: if an MGF $M_X(t)$ exists in a neighborhood of $t=0$, it uniquely determines the probability distribution of $X$. This means if we are given an MGF and can recognize its form as belonging to a known distribution, we have effectively identified the distribution of $X$.
+
+\begin{example}[Degenerate Distribution from MGF: $M_X(t) = e^{ct}$]
+\label{ex:mgf_degenerate}
+Suppose a random variable $X$ has an MGF given by $M_X(t) = e^{ct}$ for some real constant $c$. What is the distribution of $X$?
+
+We can find the moments of $X$ by differentiating $M_X(t)$:
+The first moment (mean):
+$m_1 = M_X'(0) = \left. \frac{\dee}{\dee t} (e^{ct}) \right|_{t=0} = \left. c e^{ct} \right|_{t=0} = c e^0 = c$.
+So, $\E[X] = c$.
+
+The second moment:
+$m_2 = M_X''(0) = \left. \frac{\dee^2}{\dee t^2} (e^{ct}) \right|_{t=0} = \left. c^2 e^{ct} \right|_{t=0} = c^2 e^0 = c^2$.
+So, $\E[X^2] = c^2$.
+
+In general, the $k$-th moment is $m_k = M_X^{(k)}(0) = c^k$.
+
+Now, let's calculate the variance of $X$:
+$\Var(X) = m_2 - m_1^2 = c^2 - (c)^2 = 0$.
+A random variable with zero variance must be a constant (almost surely). Since its mean $\E[X] = c$, it must be that $X=c$ with probability 1.
+This is known as a \textbf{degenerate distribution}, where all the probability mass is concentrated at a single point $c$.
+Its PMF is $P(X=c)=1$ and $P(X=x)=0$ for $x \ne c$.
+Its CDF is $F_X(x) = \begin{cases} 0 & \text{if } x < c \\ 1 & \text{if } x \ge c \end{cases}$.
+\begin{remark}
+    It's crucial to remember that in $M_X(t)$, $t$ is the argument of the MGF, which is a real variable. The MGF itself is a function that encodes information about the random variable $X$. Our goal is to deduce properties or the distribution of $X$, not $t$.
+\end{remark}
+\end{example}
+
+\begin{example}[General Discrete Distribution from MGF: $M_X(t) = \sum_{i} p_i e^{tx_i}$]
+\label{ex:mgf_general_discrete}
+Suppose an MGF is given in the form $M_X(t) = \sum_{i=1}^k p_i e^{tx_i}$, where $x_1, x_2, \dots, x_k$ are distinct real numbers, $p_i > 0$ for all $i$, and $\sum_{i=1}^k p_i = 1$.
+
+This is the MGF of a discrete random variable $X$ that takes on the values $\{x_1, x_2, \dots, x_k\}$ with corresponding probabilities $P(X=x_i) = p_i$.
+Why? Because by definition, $\E[e^{tX}] = \sum_{i=1}^k e^{tx_i} P(X=x_i)$. Comparing this with the given $M_X(t)$, we can identify the values and their probabilities.
+The CDF of such a random variable would then be $F_X(x) = \sum_{x_j \le x} p_j$.
+To identify a specific distribution, one would look at the $x_i$ values (the support) and the probabilities $p_i$.
+\end{example}
+
+\section{Inequalities in Probability Theory}
+\label{sec:inequalities}
+
+Inequalities are indispensable tools in probability and statistics. They allow us to:
+\begin{itemize}
+    \item Provide bounds on probabilities or expectations that might be difficult or impossible to calculate exactly.
+    \item Understand the limiting behavior of sequences of random variables.
+    \item Make robust statements that hold under general conditions.
+\end{itemize}
+
+\subsection{Jensen's Inequality}
+\label{subsec:jensen}
+
+Jensen's inequality provides a fundamental relationship between the expectation of a convex (or concave) function of a random variable and the function of its expectation.
+
+\begin{definition}[Convex Function]
+A function $g: I \to \R$, where $I$ is an interval in $\R$, is said to be \textbf{convex} if for all $x_1, x_2 \in I$ and for all $\lambda \in [0,1]$:
+\[ g(\lambda x_1 + (1-\lambda)x_2) \le \lambda g(x_1) + (1-\lambda)g(x_2) \]
+Geometrically, this means the line segment connecting any two points $(x_1, g(x_1))$ and $(x_2, g(x_2))$ on the graph of $g$ lies on or above the graph of $g$ between these points.
+If $g$ is twice differentiable on $I$, then $g$ is convex if and only if $g''(x) \ge 0$ for all $x \in I$.
+A function $g$ is \textbf{concave} if $-g$ is convex. For a twice-differentiable function, this means $g''(x) \le 0$ for all $x \in I$, and the inequality in the definition is reversed: $g(\lambda x_1 + (1-\lambda)x_2) \ge \lambda g(x_1) + (1-\lambda)g(x_2)$.
+\end{definition}
+
+\begin{theorem}[Jensen's Inequality]
+Let $X$ be a random variable such that its expectation $\E[X]$ is finite and lies in the domain of $g$.
+\begin{enumerate}[label=(\alph*)]
+    \item If $g$ is a convex function, then $\E[g(X)] \ge g(\E[X])$.
+    \item If $g$ is a concave function, then $\E[g(X)] \le g(\E[X])$.
+\end{enumerate}
+These inequalities hold provided $\E[g(X)]$ also exists and is finite.
+\end{theorem}
+
+\subsubsection{Application: Reciprocal of a Positive Random Variable}
+\begin{problem}[Jensen's Inequality Example 1]
+\label{prob:jensen_reciprocal}
+Prove that for a positive random variable $X$ (i.e., $P(X>0)=1$) with finite expectation, $E\left[\frac{1}{X}\right] \ge \frac{1}{E[X]}$.
+\end{problem}
+\begin{proof}
+We aim to apply Jensen's inequality. Let the function be $g(x) = \frac{1}{x}$.
+The random variable $X$ takes values in $(0, \infty)$. We need to check the convexity of $g(x)$ on this interval.
+We examine the second derivative of $g(x)$:
+$g'(x) = -\frac{1}{x^2} = -x^{-2}$
+$g''(x) = -(-2)x^{-3} = \frac{2}{x^3}$
+For $x \in (0, \infty)$, $x^3 > 0$, so $g''(x) = \frac{2}{x^3} > 0$.
+Since $g''(x) > 0$ for all $x \in (0, \infty)$, the function $g(x) = \frac{1}{x}$ is convex on $(0, \infty)$.
+
+\begin{remark}[Importance of Domain for Convexity]
+    The second derivative test is often the most convenient way to establish convexity for differentiable functions. It's crucial to confirm that the condition ($g''(x) \ge 0$ for convexity) holds over the entire support of the random variable $X$. If $X$ could take values where $g(x)$ is undefined or not convex, Jensen's inequality (in this form) would not be applicable.
+\end{remark}
+
+Since $X > 0$, $\E[X]$ will also be positive. The function $g(x) = 1/x$ is convex on the domain of $X$.
+Applying Jensen's inequality for convex functions (part (a)):
+\[ \E[g(X)] \ge g(\E[X]) \]
+Substituting $g(x) = 1/x$:
+\[ \E\left[\frac{1}{X}\right] \ge \frac{1}{\E[X]} \]
+This completes the proof. This inequality is quite useful, for example, showing that the harmonic mean is less than or equal to the arithmetic mean.
+\end{proof}
+
+\subsubsection{Application: The Arithmetic Mean-Geometric Mean (AM-GM) Inequality}
+\begin{problem}[Jensen's Inequality Example 2]
+\label{prob:jensen_amgm}
+Prove the AM-GM inequality for $n$ positive numbers $x_1, x_2, \dots, x_n > 0$:
+\[ \left(\prod_{i=1}^n x_i\right)^{1/n} \le \frac{1}{n}\sum_{i=1}^n x_i \]
+(This states that the Geometric Mean is less than or equal to the Arithmetic Mean).
+\end{problem}
+\begin{proof}
+We follow the insightful hint to consider a random variable $X$ that takes each value $x_i$ with probability $1/n$. Then, we apply Jensen's inequality to the function $g(x) = \log(x)$.
+
+Let $X$ be a discrete random variable such that $P(X=x_i) = \frac{1}{n}$ for $i=1, \dots, n$.
+Consider the function $g(x) = \log(x)$. Its domain is $(0, \infty)$, which is appropriate since all $x_i > 0$.
+Let's check for concavity/convexity by examining the second derivative:
+$g'(x) = \frac{1}{x}$
+$g''(x) = -\frac{1}{x^2}$
+For $x \in (0, \infty)$, $x^2 > 0$, so $g''(x) = -\frac{1}{x^2} < 0$.
+Since $g''(x) < 0$ for all $x \in (0, \infty)$, the function $g(x) = \log(x)$ is concave on $(0, \infty)$.
+
+Next, we calculate the necessary expectations for our random variable $X$:
+The expectation of $X$ is the arithmetic mean of the $x_i$'s:
+\[ \E[X] = \sum_{i=1}^n x_i P(X=x_i) = \sum_{i=1}^n x_i \cdot \frac{1}{n} = \frac{1}{n}\sum_{i=1}^n x_i \]
+The expectation of $g(X) = \log(X)$ is:
+\[ \E[\log(X)] = \sum_{i=1}^n \log(x_i) P(X=x_i) = \sum_{i=1}^n \log(x_i) \cdot \frac{1}{n} = \frac{1}{n}\sum_{i=1}^n \log(x_i) \]
+
+Now, we apply Jensen's inequality for concave functions (part (b): $\E[g(X)] \le g(\E[X])$):
+\[ \frac{1}{n}\sum_{i=1}^n \log(x_i) \le \log\left(\frac{1}{n}\sum_{i=1}^n x_i\right) \]
+To make this look like the AM-GM inequality, we use properties of logarithms on the left side:
+The sum of logarithms is the logarithm of the product: $\sum_{i=1}^n \log(x_i) = \log(x_1 x_2 \dots x_n)$.
+So, $\frac{1}{n}\sum_{i=1}^n \log(x_i) = \frac{1}{n}\log\left(\prod_{i=1}^n x_i\right) = \log\left(\left(\prod_{i=1}^n x_i\right)^{1/n}\right)$.
+The inequality thus becomes:
+\[ \log\left(\left(\prod_{i=1}^n x_i\right)^{1/n}\right) \le \log\left(\frac{1}{n}\sum_{i=1}^n x_i\right) \]
+Since $\log(x)$ is a strictly monotonically increasing function, if $\log(A) \le \log(B)$, then $A \le B$. We can exponentiate both sides (i.e., apply the function $e^y$, which is also strictly increasing):
+\[ e^{\log\left(\left(\prod_{i=1}^n x_i\right)^{1/n}\right)} \le e^{\log\left(\frac{1}{n}\sum_{i=1}^n x_i\right)} \]
+\[ \left(\prod_{i=1}^n x_i\right)^{1/n} \le \frac{1}{n}\sum_{i=1}^n x_i \]
+This is precisely the AM-GM inequality.
+\begin{remark}[Why the logarithm function?]
+    The choice of $g(x) = \log(x)$ is strategic. The AM-GM inequality relates a product (geometric mean) to a sum (arithmetic mean). The logarithm is the perfect tool for transforming products into sums (via $\log(ab) = \log a + \log b$) and roots/powers into products (via $\log(a^{1/n}) = \frac{1}{n}\log a$). This transformation allows Jensen's inequality, which is fundamentally about sums (expectations), to be elegantly applied to an inequality involving products.
+\end{remark}
+\end{proof}
+
+\subsection{Chernoff Bounds}
+\label{subsec:chernoff}
+
+Chernoff bounds are a class of inequalities that provide exponentially decreasing bounds on the tail probabilities of sums of independent random variables. They are typically much sharper (tighter) than bounds derived from Markov's or Chebyshev's inequality, especially for large deviations.
+
+The derivation involves the MGF and Markov's inequality. A key quantity is the Cramér-Chernoff transform, also known as the rate function.
+
+\begin{definition}[Cramér-Chernoff Transform / Rate Function]
+Let $X$ be a random variable with MGF $M_X(t) = \E[e^{tX}]$. The Cramér-Chernoff transform (or rate function) associated with $X$ is defined as:
+\[ \Lambda_X^*(a) = \sup_{t \in \R} (ta - \log M_X(t)) \]
+For bounding upper tail probabilities like $P(X \ge a)$ where $a > \E[X]$, the supremum is often taken over $t \ge 0$.
+\end{definition}
+
+\begin{theorem}[Chernoff Bound (Upper Tail)]
+For a random variable $X$ and any real number $a$:
+\[ P(X \ge a) \le e^{-\Lambda_X^*(a)} \]
+where $\Lambda_X^*(a) = \sup_{t \ge 0} (ta - \log M_X(t))$.
+(A similar bound exists for lower tails, $P(X \le a)$, typically involving $\sup_{t \le 0}$.)
+\end{theorem}
+
+\subsubsection{Derivation of the Chernoff Bound from Markov's Inequality}
+\begin{proof}
+We wish to bound $P(X \ge a)$.
+For any $t > 0$, the event $\{X \ge a\}$ is equivalent to the event $\{tX \ge ta\}$.
+Since $e^x$ is a strictly increasing function for real $x$, if $t>0$, then $\{tX \ge ta\}$ is equivalent to $\{e^{tX} \ge e^{ta}\}$.
+Thus, for any $t > 0$:
+\[ P(X \ge a) = P(e^{tX} \ge e^{ta}) \]
+Let $Y = e^{tX}$. Since $t$ is real, $e^{tX}$ is always a non-negative random variable. We can apply Markov's inequality to $Y$.
+Markov's Inequality states: For a non-negative random variable $Y$ and any $b > 0$, $P(Y \ge b) \le \frac{\E[Y]}{b}$.
+Applying this with $Y = e^{tX}$ and $b = e^{ta}$:
+\[ P(e^{tX} \ge e^{ta}) \le \frac{\E[e^{tX}]}{e^{ta}} \]
+Recognizing $\E[e^{tX}]$ as the MGF $M_X(t)$, we have:
+\[ P(X \ge a) \le \frac{M_X(t)}{e^{ta}} = e^{-ta} M_X(t) \]
+This inequality holds for any $t > 0$. To obtain the tightest possible bound from this family of inequalities (parameterized by $t$), we should choose $t > 0$ to minimize the right-hand side expression $e^{-ta} M_X(t)$.
+So, $P(X \ge a) \le \inf_{t > 0} (e^{-ta} M_X(t))$.
+Let's rewrite the term being minimized:
+$e^{-ta} M_X(t) = e^{-ta} e^{\log M_X(t)} = e^{-(ta - \log M_X(t))}$.
+Minimizing $e^{-Y}$ is equivalent to maximizing $Y$. Thus, minimizing $e^{-(ta - \log M_X(t))}$ with respect to $t>0$ is equivalent to maximizing $ta - \log M_X(t)$ with respect to $t>0$.
+Therefore,
+\[ \inf_{t > 0} (e^{-(ta - \log M_X(t))}) = e^{- \sup_{t > 0} (ta - \log M_X(t))} \]
+The lecture presentation used $t \ge 0$ for the supremum. If $t=0$, then $ta - \log M_X(0) = 0 - \log(1) = 0$, leading to the bound $P(X \ge a) \le e^0 = 1$, which is a trivial but correct bound. The optimization is usually most effective for $t>0$, particularly when $a > \E[X]$.
+Defining $\Lambda_X^*(a) = \sup_{t \ge 0} (ta - \log M_X(t))$, we arrive at the Chernoff bound:
+\[ P(X \ge a) \le e^{-\Lambda_X^*(a)} \]
+\end{proof}
+
+\subsubsection{Chernoff Bound for the Sample Mean of I.I.D. Random Variables}
+Let $X_1, X_2, \dots, X_n$ be independent and identically distributed (i.i.d.) random variables.
+Let $\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i$ be the sample mean.
+Let $S_n = \sum_{i=1}^n X_i = n\bar{X}_n$ be the sum.
+We are interested in finding a bound for $P(\bar{X}_n \ge a)$. This is equivalent to $P(S_n \ge na)$.
+We apply the Chernoff bound to the random variable $S_n$ with the threshold $na$:
+\[ P(S_n \ge na) \le e^{-\Lambda_{S_n}^*(na)} \]
+where $\Lambda_{S_n}^*(na) = \sup_{t \ge 0} (t(na) - \log M_{S_n}(t))$.
+A key property for sums of independent random variables is that the MGF of the sum is the product of their MGFs. Since $X_i$ are i.i.d., they all have the same MGF, say $M_X(t)$.
+So, $M_{S_n}(t) = M_{\sum X_i}(t) = \E[e^{t\sum X_i}] = \E[\prod_{i=1}^n e^{tX_i}] = \prod_{i=1}^n \E[e^{tX_i}]$ (by independence)
+$= \prod_{i=1}^n M_X(t) = (M_X(t))^n$.
+Therefore, $\log M_{S_n}(t) = \log((M_X(t))^n) = n \log M_X(t)$.
+Substituting this into the expression for $\Lambda_{S_n}^*(na)$:
+\begin{align*}
+\Lambda_{S_n}^*(na) &= \sup_{t \ge 0} (tna - n \log M_X(t)) \\
+&= \sup_{t \ge 0} n(ta - \log M_X(t)) \\
+&= n \sup_{t \ge 0} (ta - \log M_X(t)) \quad \text{(since } n > 0 \text{, it can be factored out of the sup)} \\
+&= n \Lambda_X^*(a)
+\end{align*}
+Thus, the Chernoff bound for the sample mean of i.i.d. random variables is:
+\[ P(\bar{X}_n \ge a) \le e^{-n \Lambda_X^*(a)} \]
+This is a very powerful result, indicating that the probability of the sample mean deviating significantly from certain values decreases exponentially with the sample size $n$, provided $\Lambda_X^*(a) > 0$.
+
+\begin{example}[Chernoff Bound for I.I.D. Bernoulli Random Variables]
+\label{ex:chernoff_bernoulli}
+Let $X_i \sim \Bern(p)$ be i.i.d. Bernoulli random variables with parameter $p \in (0,1)$.
+The MGF of a single Bernoulli($p$) RV is $M_X(t) = (1-p)e^{t \cdot 0} + p e^{t \cdot 1} = 1-p+pe^t$.
+We need to find $\Lambda_X^*(a) = \sup_{t \ge 0} (ta - \log(1-p+pe^t))$.
+Let $f(t) = ta - \log(1-p+pe^t)$. To find the supremum (for $a > \E[X]=p$), we differentiate with respect to $t$ and set the derivative to zero:
+\[ f'(t) = a - \frac{pe^t}{1-p+pe^t} \]
+Setting $f'(t^*)=0$ to find the optimal $t^*$:
+\[ a = \frac{pe^{t^*}}{1-p+pe^{t^*}} \]
+Solving for $e^{t^*}$:
+$a(1-p+pe^{t^*}) = pe^{t^*}$
+$a(1-p) + ape^{t^*} = pe^{t^*}$
+$a(1-p) = pe^{t^*}(1-a)$
+\[ e^{t^*} = \frac{a(1-p)}{p(1-a)} \]
+For this $t^*$ to be positive (which is required for $a > p = \E[X]$ for a non-trivial bound), we need $e^{t^*} > 1$, which means $\frac{a(1-p)}{p(1-a)} > 1$. This typically holds if $p < a < 1$.
+If $a \le p$, the supremum of $f(t)$ for $t \ge 0$ is achieved at $t=0$, yielding $\Lambda_X^*(a)=f(0)=0$. In this case, the Chernoff bound $P(\bar{X}_n \ge a) \le e^0 = 1$ is trivial but correct.
+We are usually interested in the non-trivial case where $a > p$. Assuming $p < a < 1$, then $t^* = \log\left(\frac{a(1-p)}{p(1-a)}\right) > 0$.
+Now we substitute this $t^*$ (or rather $e^{t^*}$) back into $\Lambda_X^*(a) = t^*a - \log M_X(t^*)$.
+First, find $M_X(t^*)$:
+$M_X(t^*) = 1-p+pe^{t^*} = 1-p+p\frac{a(1-p)}{p(1-a)} = 1-p+\frac{a(1-p)}{1-a} = \frac{(1-p)(1-a)+a(1-p)}{1-a} = \frac{(1-p)(1-a+a)}{1-a} = \frac{1-p}{1-a}$.
+So, $\log M_X(t^*) = \log\left(\frac{1-p}{1-a}\right)$.
+Then,
+\begin{align*}
+\Lambda_X^*(a) &= a \cdot t^* - \log M_X(t^*) \\
+&= a \log\left(\frac{a(1-p)}{p(1-a)}\right) - \log\left(\frac{1-p}{1-a}\right) \\
+&= a \left( \log a + \log(1-p) - \log p - \log(1-a) \right) - \left( \log(1-p) - \log(1-a) \right) \\
+&= a \log a - a \log p + a \log(1-p) - a \log(1-a) - \log(1-p) + \log(1-a) \\
+&= a \log\left(\frac{a}{p}\right) + (a-1) \log(1-p) - (a-1)\log(1-a) \\
+&= a \log\left(\frac{a}{p}\right) + (1-a) \left( \log(1-a) - \log(1-p) \right) \quad \text{(factoring out } -(a-1) = 1-a \text{)} \\
+&= a \log\left(\frac{a}{p}\right) + (1-a) \log\left(\frac{1-a}{1-p}\right)
+\end{align*}
+This expression is known as the Kullback-Leibler (KL) divergence between two Bernoulli distributions with parameters $a$ and $p$, often denoted $\DKL(\Bern(a) || \Bern(p))$ or simply $\DKL(a || p)$ in this context.
+So, for $X_i \sim \Bern(p)$ i.i.d., and $a > p$:
+\[ P(\bar{X}_n \ge a) \le e^{-n \DKL(a || p)} \]
+This is a classic and very useful form of the Chernoff bound for sums of Bernoulli trials (e.g., bounding the probability that the observed frequency $a = \bar{X}_n$ deviates significantly from the true probability $p$).
+\end{example}
+
+\section{Generating Random Samples from Distributions}
+\label{sec:sampling}
+
+The ability to generate random samples from various probability distributions is fundamental in many areas, including statistical simulation, Monte Carlo methods, testing statistical hypotheses, and more. While modern software often provides built-in functions for common distributions, understanding the underlying principles of how such samples can be generated is crucial. One of the most foundational methods is Inverse Transform Sampling.
+
+\subsection{Inverse Transform Sampling}
+\label{subsec:inverse_transform}
+
+The inverse transform sampling method (also known as the inversion method or Smirnov transform) is a technique for generating samples from a random variable $X$ if its Cumulative Distribution Function (CDF), $F_X(x)$, is known and invertible. The method relies on our ability to generate samples from a standard uniform distribution, $U \sim \Unif(0,1)$.
+
+\begin{lemma}[Inverse Transform Sampling]
+Let $F_X(x)$ be the CDF of a random variable $X$. Define the (generalized) inverse CDF as:
+\[ F_X^{-1}(u) = \inf \{x \in \R : F_X(x) \ge u\}, \quad \text{for } u \in (0,1) \]
+If $U$ is a random variable uniformly distributed on $(0,1)$ (i.e., $U \sim \Unif(0,1)$), then the random variable $Y = F_X^{-1}(U)$ has the same distribution as $X$. That is, $Y$ follows the distribution with CDF $F_X(y)$.
+\end{lemma}
+
+\begin{proof}[Sketch of Proof and Intuition]
+We want to show that the CDF of $Y=F_X^{-1}(U)$ is $F_X(y)$. That is, $P(Y \le y) = F_X(y)$.
+$P(Y \le y) = P(F_X^{-1}(U) \le y)$.
+If $F_X$ is continuous and strictly increasing, then $F_X^{-1}$ is its standard inverse, and the event $F_X^{-1}(U) \le y$ is equivalent to the event $U \le F_X(y)$ (by applying $F_X$ to both sides, which preserves the inequality because $F_X$ is increasing).
+So, $P(F_X^{-1}(U) \le y) = P(U \le F_X(y))$.
+Since $U \sim \Unif(0,1)$, its CDF is $F_U(u) = u$ for $u \in (0,1)$.
+Therefore, $P(U \le F_X(y)) = F_X(y)$, because $F_X(y)$ is a value between 0 and 1.
+The use of $\inf$ in the definition of $F_X^{-1}(u)$ (the quantile function) correctly handles cases where $F_X$ is not strictly increasing (i.e., has flat regions) or has jumps (as in discrete distributions), ensuring the result holds more generally.
+\end{proof}
+
+\textbf{Algorithm for Inverse Transform Sampling:}
+To generate a single sample $x$ from a distribution with CDF $F_X$:
+\begin{enumerate}
+    \item Generate a random number $u$ from $\Unif(0,1)$.
+    \item Compute $x = F_X^{-1}(u)$. This $x$ is now a sample from the distribution characterized by $F_X$.
+\end{enumerate}
+To generate $n$ i.i.d. samples $X_1, \dots, X_n$ from $F_X$:
+\begin{enumerate}
+    \item Generate $n$ i.i.d. samples $U_1, \dots, U_n$ from $\Unif(0,1)$.
+    \item For each $i=1, \dots, n$, compute $X_i = F_X^{-1}(U_i)$.
+\end{enumerate}
+
+\textbf{Pictorial Intuition:}
+Imagine the graph of the CDF $F_X(x)$. The y-axis ranges from 0 to 1, and the x-axis represents the values of the random variable.
+\begin{enumerate}
+    \item \textbf{Sample $U$:} Pick a random height $u$ on the y-axis (this is your $U_i \sim \Unif(0,1)$).
+    \item \textbf{Invert:} From this height $u$, draw a horizontal line to the right until it intersects the graph of $F_X(x)$.
+    \item \textbf{Find $X$:} From the intersection point, draw a vertical line down to the x-axis. The value $x$ where this line meets the x-axis is your sample $X_i = F_X^{-1}(U_i)$.
+\end{enumerate}
+Regions on the x-axis where $F_X(x)$ is steep (corresponding to high probability density) will have a larger range of $u$ values mapping to them, so they will be "hit" more frequently. Conversely, regions where $F_X(x)$ is flat (low probability density) will be hit less often. This mechanism naturally generates samples according to the desired distribution.
+
+\begin{center}
+    % Placeholder for image:
+    % \includegraphics[width=0.7\textwidth]{inverse_transform_sampling.png}
+    \fbox{\parbox[c][10cm][c]{0.7\textwidth}{\centering \textit{Placeholder for a diagram illustrating Inverse Transform Sampling:} \\ A CDF $F_X(x)$ is plotted (S-shaped curve from (0,0) towards (some $x_{max}$,1)). A value $U_i$ is chosen on the y-axis. A horizontal line from $U_i$ intersects $F_X(x)$. A vertical line from this intersection point drops to $X_i$ on the x-axis.}}
+    \end{center}
+    \begin{remark}
+    The primary challenge in applying the inverse transform sampling method often lies in finding a closed-form expression for the inverse CDF, $F_X^{-1}(u)$, or in being able to compute it efficiently. For some common distributions (like Exponential), $F_X^{-1}(u)$ is simple. For others (like Normal), it's not available in closed form, and other methods are typically used.
+\end{remark}
+
+\end{document}
